@@ -6,9 +6,9 @@
         <shared-cache-mode>NONE</shared-cache-mode>
         <validation-mode>NONE</validation-mode>
         <properties>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://www-und.ida.liu.se/DBNAME"/>
-            <property name="javax.persistence.jdbc.password" value="PASSWORD"/>
-            <property name="javax.persistence.jdbc.user" value="USERNAME"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://www-und.ida.liu.se/saman356"/>
+            <property name="javax.persistence.jdbc.password" value="saman356a097"/>
+            <property name="javax.persistence.jdbc.user" value="saman356"/>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
             <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
         </properties>

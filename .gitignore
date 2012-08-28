@@ -1,3 +1,5 @@
 *.jar
 .svn
 __MACOSX
+*.pdf
+*.pdf.*

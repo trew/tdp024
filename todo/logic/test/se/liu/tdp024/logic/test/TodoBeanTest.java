@@ -1,8 +1,10 @@
 package se.liu.tdp024.logic.test;
 
+import com.sun.tools.internal.ws.wsdl.document.http.HTTPAddress;
 import org.junit.*;
 import se.liu.tdp024.entity.Todo;
 import se.liu.tdp024.logic.bean.TodoBean;
+import se.liu.tdp024.logic.util.HTTPHelper;
 import se.liu.tdp024.util.EMF;
 
 public class TodoBeanTest {
@@ -34,6 +36,7 @@ public class TodoBeanTest {
         Assert.assertNotNull(todo);
     }
 
+    
     @Test
     public void testOpenClose() {
 

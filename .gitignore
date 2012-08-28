@@ -3,3 +3,15 @@
 __MACOSX
 *.pdf
 *.pdf.*
+
+// Lecture notes
+lec*notes.txt
+
+// NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml

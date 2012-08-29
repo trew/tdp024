@@ -66,10 +66,11 @@ public class AccountFacadeTest {
         long accountNumber = AccountFacade.create(Account.SALARY, "person", "bank");
         
         Account acc = AccountFacade.find(accountNumber);
-        Assert.assertEquals(Account.SALARY, acc.getAccountType());
         
         Assert.assertNotNull(acc);
+        Assert.assertEquals(Account.SALARY, acc.getAccountType());
         Assert.assertEquals("person", acc.getPersonKey());
+        Assert.assertEquals("bank", acc.getBankKey());
         
     }
     

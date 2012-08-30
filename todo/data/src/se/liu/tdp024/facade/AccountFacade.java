@@ -67,18 +67,68 @@ public abstract class AccountFacade {
     }
 
     public static List<Account> findByBankKey(String bankKey) {
-        return new LinkedList<Account>();
+        EntityManager em = EMF.getEntityManager();
+        Query query = em.createQuery("SELECT a FROM Account a WHERE a.bankKey = :bankkey");
+        query.setParameter("bankkey", bankKey);
+        return query.getResultList();
     }
 
     public static long balance(long accountNumber) {
-        return -1;
+        Account acc = find(accountNumber);
+        if (acc == null)
+                return -1;
+
+        return acc.getBalance();
     }
 
-    public static boolean deposit(long accountNumber, long amount) {
-        return false;
+    private static boolean changeBalance(long accountNumber, long amount) {
+        EntityManager em = EMF.getEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            Account acc = em.find(Account.class, accountNumber, LockModeType.PESSIMISTIC_WRITE);
+
+            if (acc == null) {
+                /*
+                 * Log something here
+                 */
+                return false;
+            }
+
+            if ((acc.getBalance() + amount) > Long.MAX_VALUE ||
+                    (acc.getBalance() + amount) < 0) {
+                /*
+                 * Log something here
+                 */
+                return false;
+            }
+
+            acc.changeBalance(amount);
+
+            em.merge(acc);
+            em.getTransaction().commit();
+            return true;
+
+        } catch (Exception e) {
+            /*
+             * Log something here
+             */
+            e.printStackTrace();
+            return false;
+
+        } finally {
+            if(em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            em.close();
+        }
     }
 
     public static boolean withdraw(long accountNumber, long amount) {
-        return false;
+        return changeBalance(accountNumber, -amount);
+    }
+
+
+    public static boolean deposit(long accountNumber, long amount) {
+        return changeBalance(accountNumber, amount);
     }
 }

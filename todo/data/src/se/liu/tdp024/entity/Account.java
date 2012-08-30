@@ -23,7 +23,7 @@ public class Account implements Serializable {
     @Column(nullable = false)
     private String bankKey;
 
-    private long amount;
+    private long balance;
 
     private int accountType;
 
@@ -59,17 +59,11 @@ public class Account implements Serializable {
         bankKey = key;
     }
 
-    public long getAmount() {
-        return amount;
+    public long getBalance() {
+        return balance;
     }
 
-    public void deposit(long amount) {
-        this.amount += amount;
+    public void changeBalance(long amount) {
+        this.balance += amount;
     }
-
-    public void withdraw(long amount) {
-        // TODO: Error checks
-        this.amount -= amount;
-    }
-
 }

@@ -1,7 +1,7 @@
 package se.liu.tdp024.facade;
 
 import java.util.*;
-import javax.persistence.EntityManager;
+import javax.persistence.*;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.entity.Account;
 
@@ -44,7 +44,7 @@ public abstract class AccountFacade {
             em.close();
         }
     }
-    
+
     public static Account find(long accountNumber) {
         EntityManager em = EMF.getEntityManager();
         try {
@@ -58,15 +58,18 @@ public abstract class AccountFacade {
             em.close();
         }
     }
-    
+
     public static List<Account> findByPersonKey(String personKey) {
-        return new LinkedList<Account>();
+        EntityManager em = EMF.getEntityManager();
+        Query query = em.createQuery("SELECT a FROM Account a WHERE a.personKey = :personkey");
+        query.setParameter("personkey", personKey);
+        return query.getResultList();
     }
-    
+
     public static List<Account> findByBankKey(String bankKey) {
         return new LinkedList<Account>();
     }
-    
+
     public static long balance(long accountNumber) {
         return -1;
     }

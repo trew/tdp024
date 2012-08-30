@@ -87,6 +87,11 @@ public class AccountFacadeTest {
         List<Account> accounts = AccountFacade.findByPersonKey("person");
 
         Assert.assertEquals(3, accounts.size());
+
+        // Make sure an empty list returned if querying for not
+        // existing person
+        List<Account> emptyAccounts = AccountFacade.findByPersonKey("nonexisting");
+        Assert.assertEquals(0, emptyAccounts.size());
     }
 
     @Test
@@ -99,6 +104,11 @@ public class AccountFacadeTest {
         List<Account> accounts = AccountFacade.findByBankKey("bank2");
 
         Assert.assertEquals(2, accounts.size());
+
+        // Make sure an empty list returned if querying for not
+        // existing bank
+        List<Account> emptyAccounts = AccountFacade.findByBankKey("nonexisting");
+        Assert.assertEquals(0, emptyAccounts.size());
     }
 
     @Test

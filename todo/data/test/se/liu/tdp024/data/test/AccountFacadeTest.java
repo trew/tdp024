@@ -58,7 +58,7 @@ public class AccountFacadeTest {
                                              "personKey",
                                              "bankKey");
         Assert.assertTrue("Couldn't create Savings account.",
-                          accountNumber == 0);
+                          accountNumber != 0);
     }
     
     @Test

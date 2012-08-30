@@ -14,12 +14,49 @@ public abstract class AccountFacade {
                               String personKey,
                               String bankKey) {
         EntityManager em = EMF.getEntityManager();
-        
-        return 0;
+        try {
+
+            em.getTransaction().begin();
+
+            Account acc = new Account();
+            acc.setAccountType(accountType);
+            acc.setPersonKey(personKey);
+            acc.setBankKey(bankKey);
+
+            em.persist(acc);
+
+            em.getTransaction().commit();
+
+            return acc.getAccountNumber();
+
+        } catch (Exception e) {
+            /*
+             * Should log something here
+             */
+            e.printStackTrace();
+            return 0;
+        } finally {
+
+            if(em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            em.close();
+        }
     }
     
     public static Account find(long accountNumber) {
-        return null;
+        EntityManager em = EMF.getEntityManager();
+        try {
+            return em.find(Account.class, accountNumber);
+        } catch (Exception e) {
+            /*
+             * Log something here
+             */
+            return null;
+        } finally {
+            em.close();
+        }
     }
     
     public static List<Account> findByPersonKey(String personKey) {

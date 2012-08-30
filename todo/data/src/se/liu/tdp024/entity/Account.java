@@ -17,10 +17,10 @@ public class Account implements Serializable {
     private long accountNumber;
     
     @Column(nullable = false)
-    private long personKey;
+    private String personKey;
     
     @Column(nullable = false)
-    private long bankKey;
+    private String bankKey;
     
     private long amount;
     
@@ -42,19 +42,19 @@ public class Account implements Serializable {
         return true;
     }
     
-    public long getPersonKey() {
+    public String getPersonKey() {
         return personKey;
     }
     
-    public void setPersonKey(long key) {
+    public void setPersonKey(String key) {
         personKey = key;
     }
     
-    public long getBankKey() {
+    public String getBankKey() {
         return bankKey;
     }
     
-    public void setBankKey(long key) {
+    public void setBankKey(String key) {
         bankKey = key;
     }
     

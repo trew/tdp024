@@ -5,8 +5,11 @@ import java.util.*;
 import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.logic.util.HTTPHelper;
+import se.liu.tdp024.util.Monlog;
 
 public abstract class AccountBean {
+    public static final Monlog logger = Monlog.getLogger();
+
     private static String PersonAPI_URL = "http://enterprise-systems.appspot.com/person/";
     private static String BankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
 
@@ -26,7 +29,11 @@ public abstract class AccountBean {
                               String personKey,
                               String bankKey) {
         if (!personExists(personKey)) {
-            //log
+            logger.log(Monlog.Severity.WARNING,
+                    "Tried to create account without PersonKey",
+                    "AccountType: "+ String.valueOf(accountType) +
+                    "\nPersonKey: "+ personKey +
+                    "\nBankKey: " + bankKey);
             return 0;
         }
         if (!bankExists(bankKey)) {

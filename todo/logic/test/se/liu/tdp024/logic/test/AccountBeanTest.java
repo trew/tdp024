@@ -12,6 +12,7 @@ import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.logic.util.HTTPHelper;
 import se.liu.tdp024.logic.bean.AccountBean;
 import se.liu.tdp024.util.EMF;
+import se.liu.tdp024.util.Monlog;
 
 
 public class AccountBeanTest {
@@ -28,6 +29,8 @@ public class AccountBeanTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        Monlog.LoggingOn = false;
+
         JsonParser jp = new JsonParser();
         JsonObject jo;
         JsonElement je;
@@ -51,10 +54,12 @@ public class AccountBeanTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
+            Monlog.LoggingOn = true;
     }
 
     @Before
     public void setUp() {
+
     }
 
     @After

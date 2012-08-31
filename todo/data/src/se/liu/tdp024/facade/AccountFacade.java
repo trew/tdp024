@@ -4,11 +4,12 @@ import java.util.*;
 import javax.persistence.*;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.entity.Account;
-
+import se.liu.tdp024.util.Monlog;
 /**
  *
  */
 public abstract class AccountFacade {
+    private final static Monlog logger = Monlog.getLogger();
 
     public static long create(int accountType,
                               String personKey,

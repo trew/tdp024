@@ -1,27 +1,39 @@
 package se.liu.tdp024.logic.bean;
 
+import com.google.gson.*;
 import java.util.*;
 import se.liu.tdp024.entity.Account;
+import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.logic.util.HTTPHelper;
 
 public abstract class AccountBean {
+    private static String PersonAPI_URL = "http://enterprise-systems.appspot.com/person/";
+    private static String BankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
+
+    private static boolean personExists(String personKey) {
+        String resp = HTTPHelper.get(PersonAPI_URL, "find.key", personKey);
+        JsonParser jp = new JsonParser();
+        return jp.parse(resp).isJsonObject();
+    }
+
+    private static boolean bankExists(String bankKey) {
+        String resp = HTTPHelper.get(BankAPI_URL, "find.key", bankKey);
+        JsonParser jp = new JsonParser();
+        return jp.parse(resp).isJsonObject();
+    }
 
     public static long create(int accountType,
                               String personKey,
                               String bankKey) {
-        /*
-         * Find the person in the person-db
-         */
-        String personFound = HTTPHelper.get("dataURL", personKey);
-
-        /*
-         * Find the bank in the bank-db
-         */
-
-        /*
-         * Try to create a
-         */
-        return 0;
+        if (!personExists(personKey)) {
+            //log
+            return 0;
+        }
+        if (!bankExists(bankKey)) {
+            //log
+            return 0;
+        }
+        return AccountFacade.create(accountType, personKey, bankKey);
     }
 
     public static Account getAccount(long accountNumber) {

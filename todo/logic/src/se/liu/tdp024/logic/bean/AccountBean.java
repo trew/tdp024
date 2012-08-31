@@ -37,22 +37,22 @@ public abstract class AccountBean {
     }
 
     public static Account getAccount(long accountNumber) {
-        return null;
+        return AccountFacade.find(accountNumber);
     }
 
     public static List<Account> findByPersonKey(String personKey) {
-        return new LinkedList<Account>();
+        return AccountFacade.findByPersonKey(personKey);
     }
 
     public static List<Account> findByBankKey(String bankKey) {
-        return new LinkedList<Account>();
+        return AccountFacade.findByBankKey(bankKey);
     }
 
     public static boolean deposit(long accountNumber, long amount) {
-        return false;
+        return AccountFacade.deposit(accountNumber, amount);
     }
 
     public static boolean withdraw(long accountNumber, long amount) {
-        return false;
+        return AccountFacade.withdraw(accountNumber, amount);
     }
 }

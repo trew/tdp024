@@ -12,7 +12,7 @@ import java.util.Calendar;
 public class Monlog {
 
     private static final String MONLOG_ENDPOINT = "http://www.ida.liu.se/~TDP024/monlog/api/log/";
-    private static final String API_KEY = "";
+    private static final String API_KEY = "423b0ef8aa9b0e030e785a63262c06c81d1beaa7";
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
     public static void log(int severity, String shortDescription, String longDescription) {

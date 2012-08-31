@@ -1,6 +1,5 @@
 package se.liu.tdp024.logic.test;
 
-import com.sun.tools.internal.ws.wsdl.document.http.HTTPAddress;
 import org.junit.*;
 import se.liu.tdp024.entity.Todo;
 import se.liu.tdp024.logic.bean.TodoBean;

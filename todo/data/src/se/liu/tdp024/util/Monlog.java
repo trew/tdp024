@@ -1,15 +1,12 @@
 package se.liu.tdp024.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 import java.util.Calendar;
 
-public abstract class Monlog {
+public class Monlog {
+    public static boolean LoggingOn = true;
+
     public static abstract class Severity {
         public static int DEBUG     = 0;
         public static int INFO      = 1;
@@ -21,12 +18,26 @@ public abstract class Monlog {
         public static int EMERGENCY = 7;
     }
 
+    public static Monlog getLogger() {
+        final Throwable t = new Throwable();
+        final StackTraceElement methodCaller = t.getStackTrace()[1];
+        return new Monlog(methodCaller.getClassName());
+    }
+
+    private Monlog(String caller) {
+        this.caller = caller;
+    }
+
+    private String caller;
     private static final String MONLOG_ENDPOINT = "http://www.ida.liu.se/~TDP024/monlog/api/log/";
     private static final String API_KEY = "423b0ef8aa9b0e030e785a63262c06c81d1beaa7";
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
     
-    public static void log(int severity, String shortDescription, String longDescription) {
+    public void log(int severity, String shortDescription, String longDescription) {
+        if (!LoggingOn)
+            return;
+        shortDescription = caller + " " + shortDescription;
 
         StringBuilder dataBuilder = new StringBuilder();
         dataBuilder.append("{");
@@ -45,8 +56,10 @@ public abstract class Monlog {
             connection.setConnectTimeout(60000);
             connection.setRequestMethod("POST");
 
+            // make newlines safe
+            String json = dataBuilder.toString().replaceAll("\\\n", "\\\\n");
             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), "utf-8");
-            writer.write(dataBuilder.toString());
+            writer.write(json);
             writer.close();
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK || connection.getResponseCode() == HttpURLConnection.HTTP_CREATED) {

@@ -11,13 +11,13 @@ public abstract class AccountBean {
     private static String BankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
 
     private static boolean personExists(String personKey) {
-        String resp = HTTPHelper.get(PersonAPI_URL, "find.key", personKey);
+        String resp = HTTPHelper.get(PersonAPI_URL + "find.key", "key", personKey);
         JsonParser jp = new JsonParser();
         return jp.parse(resp).isJsonObject();
     }
 
     private static boolean bankExists(String bankKey) {
-        String resp = HTTPHelper.get(BankAPI_URL, "find.key", bankKey);
+        String resp = HTTPHelper.get(BankAPI_URL + "find.key", "key", bankKey);
         JsonParser jp = new JsonParser();
         return jp.parse(resp).isJsonObject();
     }

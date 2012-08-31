@@ -48,6 +48,10 @@ public abstract class AccountBean {
         return AccountFacade.findByBankKey(bankKey);
     }
 
+    public static long balance(long accountNumber) {
+        return AccountFacade.balance(accountNumber);
+    }
+
     public static boolean deposit(long accountNumber, long amount) {
         return AccountFacade.deposit(accountNumber, amount);
     }

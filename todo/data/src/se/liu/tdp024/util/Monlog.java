@@ -9,7 +9,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 
-public class Monlog {
+public abstract class Monlog {
+    public static abstract class Severity {
+        public static int DEBUG     = 0;
+        public static int INFO      = 1;
+        public static int NOTIFY    = 2;
+        public static int WARNING   = 3;
+        public static int ERROR     = 4;
+        public static int CRITICAL  = 5;
+        public static int ALERT     = 6;
+        public static int EMERGENCY = 7;
+    }
 
     private static final String MONLOG_ENDPOINT = "http://www.ida.liu.se/~TDP024/monlog/api/log/";
     private static final String API_KEY = "423b0ef8aa9b0e030e785a63262c06c81d1beaa7";

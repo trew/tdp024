@@ -6,6 +6,8 @@
 package se.liu.tdp024.data.test;
 
 import java.util.*;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import org.junit.*;
 import se.liu.tdp024.entity.*;
 import se.liu.tdp024.facade.AccountFacade;
@@ -116,29 +118,73 @@ public class AccountFacadeTest {
 
     @Test
     public void testBalanceChanges() {
-        long accountNumber = AccountFacade.create(Account.SALARY, "person", "bank");
+        long sender   = AccountFacade.create(Account.SALARY, "person1", "bank");
+        long reciever = AccountFacade.create(Account.SALARY, "person2", "bank");
         boolean status;
-
-        Assert.assertEquals(0, AccountFacade.balance(accountNumber));
-
-        // Deposit some
-        status = AccountFacade.deposit(accountNumber, 100);
+        status = AccountFacade.depositCash(sender, 1000); // deposit 1000 to sender account
         Assert.assertTrue(status);
-        Assert.assertEquals(100, AccountFacade.balance(accountNumber));
 
-        // Withdraw some money
-        status = AccountFacade.withdraw(accountNumber, 50);
+        Assert.assertEquals(1000, AccountFacade.balance(sender));
+        Assert.assertEquals(0, AccountFacade.balance(reciever));
+
+        // Make sure the transaction is saved
+        EntityManager em = EMF.getEntityManager();
+        Query q = em.createQuery("SELECT t FROM SavedTransaction t;");
+        SavedTransaction st = null;
+        List results = q.getResultList();
+        if (results.isEmpty()) {
+            st = null;
+        } else if (results.size() == 1) {
+            Object o = results.get(0);
+            st = (SavedTransaction)o;
+        }
+        Assert.assertNotNull(st);
+        Assert.assertEquals(1000, st.getAmount());
+
+        // Transfer some money from sender to reciever
+        status = AccountFacade.transfer(sender, reciever, 100);
         Assert.assertTrue(status);
-        Assert.assertEquals(50, AccountFacade.balance(accountNumber));
+        Assert.assertEquals(900, AccountFacade.balance(sender));
+        Assert.assertEquals(100, AccountFacade.balance(reciever));
+
+        // Transfer some money back
+        status = AccountFacade.transfer(reciever, sender, 50);
+        Assert.assertTrue(status);
+        Assert.assertEquals(950, AccountFacade.balance(sender));
+        Assert.assertEquals(50, AccountFacade.balance(reciever));
+
+        // Deposit cash to reciever
+        status = AccountFacade.depositCash(reciever, 50);
+        Assert.assertTrue(status);
+        Assert.assertEquals(100, AccountFacade.balance(reciever));
+
+        // Deposit cash to reciever
+        status = AccountFacade.withdrawCash(reciever, 10);
+        Assert.assertTrue(status);
+        Assert.assertEquals(90, AccountFacade.balance(reciever));
 
         // Try to withdraw too much
-        status = AccountFacade.withdraw(accountNumber, 100);
+        status = AccountFacade.withdrawCash(reciever, 100);
         Assert.assertFalse(status);
-        Assert.assertEquals(50, AccountFacade.balance(accountNumber));
+        Assert.assertEquals(90, AccountFacade.balance(reciever));
 
         // Try to deposit too much
-        status = AccountFacade.deposit(accountNumber, Long.MAX_VALUE);
+        status = AccountFacade.depositCash(reciever, Long.MAX_VALUE);
         Assert.assertFalse(status);
-        Assert.assertEquals(50, AccountFacade.balance(accountNumber));
+        Assert.assertEquals(90, AccountFacade.balance(reciever));
+
+        // Try to transfer too much from sender account
+        status = AccountFacade.transfer(sender, reciever, 1000);
+        Assert.assertFalse(status);
+        Assert.assertEquals(950, AccountFacade.balance(sender));
+        Assert.assertEquals(90, AccountFacade.balance(reciever));
+
+        // Try to transfer so much the reciever account gets overflowed
+        AccountFacade.depositCash(sender, Long.MAX_VALUE - 950);
+        Assert.assertEquals(Long.MAX_VALUE, AccountFacade.balance(sender));
+        status = AccountFacade.transfer(sender, reciever, Long.MAX_VALUE);
+        Assert.assertFalse(status);
+        Assert.assertEquals(Long.MAX_VALUE, AccountFacade.balance(sender));
+        Assert.assertEquals(90, AccountFacade.balance(reciever));
     }
 }

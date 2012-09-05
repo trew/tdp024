@@ -59,11 +59,15 @@ public abstract class AccountBean {
         return AccountFacade.balance(accountNumber);
     }
 
-    public static boolean deposit(long accountNumber, long amount) {
-        return AccountFacade.deposit(accountNumber, amount);
+    public static boolean transfer(long sender, long reciever, long amount) {
+        return AccountFacade.transfer(sender, reciever, amount);
     }
 
-    public static boolean withdraw(long accountNumber, long amount) {
-        return AccountFacade.withdraw(accountNumber, amount);
+    public static boolean depositCash(long account, long amount) {
+        return AccountFacade.depositCash(account, amount);
+    }
+
+    public static boolean withdrawCash(long account, long amount) {
+        return AccountFacade.withdrawCash(account, amount);
     }
 }

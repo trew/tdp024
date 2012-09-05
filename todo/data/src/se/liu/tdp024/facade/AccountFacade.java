@@ -2,8 +2,9 @@ package se.liu.tdp024.facade;
 
 import java.util.*;
 import javax.persistence.*;
-import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.entity.Account;
+import se.liu.tdp024.entity.SavedTransaction;
+import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.util.Monlog;
 /**
  *
@@ -34,7 +35,6 @@ public abstract class AccountFacade {
             /*
              * Should log something here
              */
-            e.printStackTrace();
             return 0;
         } finally {
 
@@ -76,37 +76,69 @@ public abstract class AccountFacade {
 
     public static long balance(long accountNumber) {
         Account acc = find(accountNumber);
-        if (acc == null)
-                return -1;
+        if (acc == null) {
+            return -1;
+        }
 
         return acc.getBalance();
     }
 
-    private static boolean changeBalance(long accountNumber, long amount) {
+    private static boolean changeBalance(long sender, long reciever, long amount) {
         EntityManager em = EMF.getEntityManager();
+
+        SavedTransaction st = new SavedTransaction();
+        st.setSender(sender);
+        st.setReciever(reciever);
+        st.setAmount(amount);
+        st.setSuccess(true); // Crossing fingers, "Everything will be ok!"
 
         try {
             em.getTransaction().begin();
-            Account acc = em.find(Account.class, accountNumber, LockModeType.PESSIMISTIC_WRITE);
-
-            if (acc == null) {
-                /*
-                 * Log something here
-                 */
+            if (sender == reciever) {
+                /* LOG */
                 return false;
             }
 
-            if ((acc.getBalance() + amount) > Long.MAX_VALUE ||
-                    (acc.getBalance() + amount) < 0) {
-                /*
-                 * Log something here
-                 */
-                return false;
+            Account senderAcc = null;
+            Account recieverAcc = null;
+
+            // Check validity of sender account
+            if (sender != 0) {
+                senderAcc = em.find(Account.class, sender, LockModeType.PESSIMISTIC_WRITE);
+                if (senderAcc == null) {
+                    return false;
+                } else {
+                    if ((senderAcc.getBalance() - amount) < 0 ||
+                            (senderAcc.getBalance() - amount) > Long.MAX_VALUE) {
+                        // Value out of range
+                        return false;
+                    }
+                }
             }
 
-            acc.changeBalance(amount);
+            if (reciever != 0) {
+                recieverAcc = em.find(Account.class, reciever, LockModeType.PESSIMISTIC_WRITE);
+                if (recieverAcc == null) {
+                    return false;
+                } else {
+                    if ((recieverAcc.getBalance() + amount) < 0 ||
+                            (recieverAcc.getBalance() + amount) > Long.MAX_VALUE) {
+                        // Value out of range
+                        return false;
+                    }
+                }
+            }
 
-            em.merge(acc);
+            if (senderAcc != null) {
+                senderAcc.changeBalance(-amount);
+                em.merge(senderAcc); // Commit account changes
+            }
+            if (recieverAcc != null) {
+                recieverAcc.changeBalance(amount);
+                em.merge(recieverAcc); // Commit account changes
+            }
+
+            em.merge(st);  // Save transaction
             em.getTransaction().commit();
             return true;
 
@@ -114,22 +146,44 @@ public abstract class AccountFacade {
             /*
              * Log something here
              */
-            e.printStackTrace();
             return false;
 
         } finally {
-            if(em.getTransaction().isActive())
+            /* If the transaction is still active, the commit never happened. */
+            /* Do a barrel rollback. */
+            if(em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
+
+                /* We had to rollback the SavedTransaction, so recommit it */
+                /* Also, if the SavedTransaction raised exception and couldn't */
+                /* be saved, success needs to be set to false before recommit */
+                st.setSuccess(false);
+                try {
+                    em.getTransaction().begin();
+                    em.merge(st);
+                    em.getTransaction().commit();
+                } catch (Exception e) {
+                    if(em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                        /*
+                         * Couldn't save SavedTransaction. Log to monlog
+                         */
+                    }
+                }
+            }
             em.close();
         }
     }
 
-    public static boolean withdraw(long accountNumber, long amount) {
-        return changeBalance(accountNumber, -amount);
+    public static boolean transfer(long sender, long reciever, long amount) {
+        return changeBalance(sender, reciever, amount);
     }
 
+    public static boolean withdrawCash(long account, long amount) {
+        return changeBalance(account, 0, amount);
+    }
 
-    public static boolean deposit(long accountNumber, long amount) {
-        return changeBalance(accountNumber, amount);
+    public static boolean depositCash(long account, long amount) {
+        return changeBalance(0, account, amount);
     }
 }

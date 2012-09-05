@@ -16,13 +16,29 @@ public abstract class AccountBean {
     private static boolean personExists(String personKey) {
         String resp = HTTPHelper.get(PersonAPI_URL + "find.key", "key", personKey);
         JsonParser jp = new JsonParser();
-        return jp.parse(resp).isJsonObject();
+        JsonElement json = jp.parse(resp);
+        if (json != null) {
+            return json.isJsonObject();
+        } else {
+            /*
+             * Log the response from PersonAPI
+             */
+            return false;
+        }
     }
 
     private static boolean bankExists(String bankKey) {
         String resp = HTTPHelper.get(BankAPI_URL + "find.key", "key", bankKey);
         JsonParser jp = new JsonParser();
-        return jp.parse(resp).isJsonObject();
+        JsonElement json = jp.parse(resp);
+        if (json != null) {
+            return json.isJsonObject();
+        } else {
+            /*
+             * Log the response from BankAPI
+             */
+            return false;
+        }
     }
 
     public static Account create(int accountType,

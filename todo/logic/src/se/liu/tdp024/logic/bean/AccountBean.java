@@ -25,7 +25,7 @@ public abstract class AccountBean {
         return jp.parse(resp).isJsonObject();
     }
 
-    public static long create(int accountType,
+    public static Account create(int accountType,
                               String personKey,
                               String bankKey) {
         if (!personExists(personKey)) {
@@ -34,11 +34,11 @@ public abstract class AccountBean {
                     "AccountType: "+ String.valueOf(accountType) +
                     "\nPersonKey: "+ personKey +
                     "\nBankKey: " + bankKey);
-            return 0;
+            return null;
         }
         if (!bankExists(bankKey)) {
             //log
-            return 0;
+            return null;
         }
         return AccountFacade.create(accountType, personKey, bankKey);
     }

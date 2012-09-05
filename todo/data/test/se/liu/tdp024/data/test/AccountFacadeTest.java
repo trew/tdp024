@@ -45,37 +45,34 @@ public class AccountFacadeTest {
     @Test
     public void testCreate() {
         // Create a new salary account
-        long accountNumber = AccountFacade.create(Account.SALARY,
-                                                  "personKey",
-                                                  "bankKey");
-        Assert.assertFalse("Accountnumber cannot be 0.", accountNumber == 0);
+        Account account = AccountFacade.create(Account.SALARY,
+                                               "personKey",
+                                               "bankKey");
+        Assert.assertNotNull(account);
 
         // Create a second account for same user
-        long newAccountNumber = AccountFacade.create(Account.SALARY,
-                                             "personKey",
-                                             "bankKey");
+        Account  newAccount = AccountFacade.create(Account.SALARY,
+                                                   "personKey",
+                                                   "bankKey");
         Assert.assertTrue("Second account couldn't be created.",
-                            accountNumber != newAccountNumber &&
-                            newAccountNumber != 0);
+            newAccount != null &&
+            account.getAccountNumber() != newAccount.getAccountNumber());
 
         // Create a savings account
-        accountNumber = AccountFacade.create(Account.SAVINGS,
-                                             "personKey",
-                                             "bankKey");
-        Assert.assertTrue("Couldn't create Savings account.",
-                          accountNumber != 0);
+        account = AccountFacade.create(Account.SAVINGS,
+                                       "personKey",
+                                       "bankKey");
+        Assert.assertNotNull(account);
     }
 
     @Test
     public void testFind() {
-        long accountNumber = AccountFacade.create(Account.SALARY, "person", "bank");
+        Account account = AccountFacade.create(Account.SALARY, "person", "bank");
 
-        Account acc = AccountFacade.find(accountNumber);
+        Account acc = AccountFacade.find(account.getAccountNumber());
 
         Assert.assertNotNull(acc);
-        Assert.assertEquals(Account.SALARY, acc.getAccountType());
-        Assert.assertEquals("person", acc.getPersonKey());
-        Assert.assertEquals("bank", acc.getBankKey());
+        Assert.assertEquals(account.getAccountNumber(), acc.getAccountNumber());
 
         // Test for non-existant find
         acc = AccountFacade.find(123456);
@@ -118,12 +115,12 @@ public class AccountFacadeTest {
 
     @Test
     public void testBalanceChanges() {
-        long sender   = AccountFacade.create(Account.SALARY, "person1", "bank");
-        long reciever = AccountFacade.create(Account.SALARY, "person2", "bank");
-        boolean status;
-        status = AccountFacade.depositCash(sender, 1000); // deposit 1000 to sender account
-        Assert.assertTrue(status);
+        long sender   = AccountFacade.create(Account.SALARY, "person1", "bank").getAccountNumber();
+        long reciever = AccountFacade.create(Account.SALARY, "person2", "bank").getAccountNumber();
+        Assert.assertFalse(sender == reciever || sender == 0 || reciever == 0);
 
+        boolean status = AccountFacade.depositCash(sender, 1000); // deposit 1000 to sender account
+        Assert.assertTrue(status);
         Assert.assertEquals(1000, AccountFacade.balance(sender));
         Assert.assertEquals(0, AccountFacade.balance(reciever));
 

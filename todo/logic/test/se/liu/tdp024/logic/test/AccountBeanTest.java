@@ -72,7 +72,7 @@ public class AccountBeanTest {
         JsonParser jp = new JsonParser();
 
         // Make sure account was created
-        Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey) != 0);
+        Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey) != null);
 
         // Test that account cannot be created if Person does not exist, but bank does.
         String responseP = HTTPHelper.get(PersonAPI_URL + "find.key", "key", nonExistingPersonKey);
@@ -80,7 +80,7 @@ public class AccountBeanTest {
         Assert.assertTrue(jp.parse(responseP).isJsonNull()); // Make sure the response was empty
 
         // Make sure creation couldn't happen with a non-existing Person
-        Assert.assertTrue(AccountBean.create(Account.SALARY, nonExistingPersonKey, ExistingBankKey) == 0);
+        Assert.assertTrue(AccountBean.create(Account.SALARY, nonExistingPersonKey, ExistingBankKey) == null);
 
         // Test that account cannot be created if Bank does not exist, but Person does.
         responseP = HTTPHelper.get(BankAPI_URL + "find.key", "key", nonExistingBankKey);
@@ -88,13 +88,13 @@ public class AccountBeanTest {
         Assert.assertTrue(jp.parse(responseP).isJsonNull()); // Make sure the response was empty
 
         // Make sure creation couldn't happen with a non-existing Bank
-        Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, nonExistingBankKey) == 0);
+        Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, nonExistingBankKey) == null);
     }
 
     @Test
     public void testDeposit() {
         //create an account
-        long accountNumber = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
+        long accountNumber = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey).getAccountNumber();
         Assert.assertTrue(accountNumber != 0); //make sure account was created
 
         // make sure 100 can be deposited
@@ -113,7 +113,7 @@ public class AccountBeanTest {
     @Test
     public void testWithdraw() {
         //create an account and deposit 1000
-        long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey);
+        long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
         Assert.assertTrue(accountNumber != 0); //make sure account was created
         boolean status = AccountBean.depositCash(accountNumber, 1000);
         long balance = AccountBean.balance(accountNumber);
@@ -133,8 +133,8 @@ public class AccountBeanTest {
 
     @Test
     public void testTransfer() {
-        long senderAcc = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
-        long recieverAcc = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey);
+        long senderAcc = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey).getAccountNumber();
+        long recieverAcc = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
         AccountBean.depositCash(senderAcc, 1000);
         Assert.assertEquals(1000, AccountBean.balance(senderAcc));
@@ -147,7 +147,7 @@ public class AccountBeanTest {
     @Test
     public void testGetAccount() {
         //create an account
-        long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey);
+        long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
         Assert.assertTrue(accountNumber != 0); //make sure account was created
 
         // try retrieving the account

@@ -12,7 +12,7 @@ import se.liu.tdp024.util.Monlog;
 public abstract class AccountFacade {
     private final static Monlog logger = Monlog.getLogger();
 
-    public static long create(int accountType,
+    public static Account create(int accountType,
                               String personKey,
                               String bankKey) {
         EntityManager em = EMF.getEntityManager();
@@ -29,13 +29,13 @@ public abstract class AccountFacade {
 
             em.getTransaction().commit();
 
-            return acc.getAccountNumber();
+            return acc;
 
         } catch (Exception e) {
             /*
              * Should log something here
              */
-            return 0;
+            return null;
         } finally {
 
             if(em.getTransaction().isActive()) {

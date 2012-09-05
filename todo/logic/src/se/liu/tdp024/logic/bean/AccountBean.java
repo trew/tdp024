@@ -60,15 +60,24 @@ public abstract class AccountBean {
     }
 
     public static boolean transfer(long sender, long reciever, long amount) {
+        if(amount < 0) {
+            return false;
+        }
         return AccountFacade.transfer(sender, reciever, amount);
     }
 
     public static boolean depositCash(long account, long amount) {
+        if(amount < 0) {
+            return false;
+        }
         return AccountFacade.depositCash(account, amount);
     }
 
     public static boolean withdrawCash(long account, long amount) {
+        if(amount < 0) {
+            return false;
+        }
         return AccountFacade.withdrawCash(account, amount);
     }
-   
+
 }

@@ -80,4 +80,94 @@ public class AccountServiceTest {
     @Test
     public void testListByBankIDFailure() {
     }
+
+    @Test
+    public void testWithdraw() {
+        AccountService as = new AccountService();
+        long testAccount = AccountBean.create(Account.SALARY,
+                ExistingPersonKey, ExistingBankKey);
+
+        // Withdraw non-existing money
+        Response response = as.withdraw(testAccount, 100);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Deposit cash for testing purposes and try a valid withdraw
+        Assert.assertTrue(AccountBean.depositCash(testAccount, 200));
+
+        // Verify money transfered
+        Assert.assertEquals(200, AccountBean.balance(testAccount));
+
+        response = as.withdraw(testAccount, 80);
+        Assert.assertEquals(200, response.getStatus());
+
+        // Try to withdraw negative amount
+        response = as.withdraw(testAccount, -50);
+        Assert.assertEquals(500,response.getStatus());
+
+        // Try to withdraw from nonexisting account.
+        response = as.withdraw(999, 100);
+        Assert.assertEquals(500,response.getStatus());
+    }
+
+    @Test
+    public void testDeposit() {
+        // Set up test-account
+        AccountService as = new AccountService();
+        long testAccount = AccountBean.create(Account.SALARY,
+                ExistingPersonKey, ExistingBankKey);
+
+        // Test valid deposit
+        Response response = as.deposit(testAccount, 100);
+        Assert.assertEquals(200, response.getStatus());
+
+        // Test invalid amount (amount to large)
+        response = as.deposit(testAccount, Long.MAX_VALUE);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Test invalid amount (negative)
+        response = as.deposit(testAccount, -50);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Deposit
+        response = as.deposit(999, 100);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testTransfer() {
+        // Set up test-accounts
+        AccountService as = new AccountService();
+        long recieverAcc = AccountBean.create(Account.SALARY,
+                ExistingPersonKey, ExistingBankKey);
+
+        long senderAcc = AccountBean.create(Account.SAVINGS,
+                ExistingPersonKey, ExistingBankKey);
+
+        Response response = as.deposit(senderAcc, 100);
+        Assert.assertEquals(200, response.getStatus());
+
+        response = as.transfer(senderAcc, recieverAcc, 20);
+        Assert.assertEquals(200, response.getStatus());
+
+        // Verify money transfered
+        Assert.assertEquals(20, AccountBean.balance(recieverAcc));
+
+        // Test invalid transfer (not enough money)
+        response = as.transfer(senderAcc, recieverAcc, 200);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Test invalid transfer (negative amount)
+        response = as.transfer(senderAcc, recieverAcc, -20);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Test invalid transfer (unknown sender)
+        response = as.transfer(999, recieverAcc, 20);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Test invalid transfer (unknown reciever)
+        response = as.transfer(senderAcc, 999, 20);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+
 }

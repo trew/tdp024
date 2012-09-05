@@ -63,14 +63,14 @@ public class AccountService {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
- /*
+
     @GET
     @Path("/deposit")
-    public Response withdraw(
+    public Response deposit(
             @QueryParam("acc") long acc,
             @QueryParam("amount") long amount) {
 
-        boolean status = AccountBean.withdrawCash(acc, amount);
+        boolean status = AccountBean.depositCash(acc, amount);
 
         if (status == true) {
             String json = GSON.toJson(status);
@@ -79,16 +79,16 @@ public class AccountService {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    */
 
-    /*
+
     @GET
     @Path("/transfer")
-    public Response withdraw(
-            @QueryParam("acc") long acc,
+    public Response transfer(
+            @QueryParam("sender") long senderAcc,
+            @QueryParam("reciever") long recieverAcc,
             @QueryParam("amount") long amount) {
 
-        boolean status = AccountBean.withdrawCash(acc, amount);
+        boolean status = AccountBean.transfer(senderAcc, recieverAcc, amount);
 
         if (status == true) {
             String json = GSON.toJson(status);
@@ -97,5 +97,5 @@ public class AccountService {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    */
+
 }

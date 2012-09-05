@@ -7,9 +7,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import se.liu.tdp024.entity.Account;
-import se.liu.tdp024.entity.Todo;
+import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.logic.bean.AccountBean;
-import se.liu.tdp024.logic.bean.TodoBean;
 
 @Path("/account")
 public class AccountService {
@@ -42,4 +41,61 @@ public class AccountService {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 
     }
+    /*
+     * /account/withdraw          param: acc, amount
+     * /account/deposit           param: acc, amount
+     * /account/transfer          param: sender, reciever, amount
+     */
+
+
+    @GET
+    @Path("/withraw")
+    public Response withdraw(
+            @QueryParam("acc") long acc,
+            @QueryParam("amount") long amount) {
+
+        boolean status = AccountBean.withdrawCash(acc, amount);
+
+        if (status == true) {
+            String json = GSON.toJson(status);
+            return Response.status(Response.Status.OK).entity(json).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+ /*
+    @GET
+    @Path("/deposit")
+    public Response withdraw(
+            @QueryParam("acc") long acc,
+            @QueryParam("amount") long amount) {
+
+        boolean status = AccountBean.withdrawCash(acc, amount);
+
+        if (status == true) {
+            String json = GSON.toJson(status);
+            return Response.status(Response.Status.OK).entity(json).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    */
+
+    /*
+    @GET
+    @Path("/transfer")
+    public Response withdraw(
+            @QueryParam("acc") long acc,
+            @QueryParam("amount") long amount) {
+
+        boolean status = AccountBean.withdrawCash(acc, amount);
+
+        if (status == true) {
+            String json = GSON.toJson(status);
+            return Response.status(Response.Status.OK).entity(json).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    */
 }

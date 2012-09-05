@@ -70,4 +70,5 @@ public abstract class AccountBean {
     public static boolean withdrawCash(long account, long amount) {
         return AccountFacade.withdrawCash(account, amount);
     }
+   
 }

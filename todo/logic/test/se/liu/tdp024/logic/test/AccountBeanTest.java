@@ -99,13 +99,13 @@ public class AccountBeanTest {
 
         // make sure 100 can be deposited
         long balance = AccountBean.balance(accountNumber);
-        boolean status = AccountBean.deposit(accountNumber, 100);
+        boolean status = AccountBean.depositCash(accountNumber, 100);
         Assert.assertTrue(status);
         Assert.assertEquals(100, AccountBean.balance(accountNumber));
 
         // make sure value can't exceed Long.MAX_VALUE
         // value shouldn't change
-        status = AccountBean.deposit(accountNumber, Long.MAX_VALUE);
+        status = AccountBean.depositCash(accountNumber, Long.MAX_VALUE);
         Assert.assertFalse(status);
         Assert.assertEquals(100, AccountBean.balance(accountNumber));
     }
@@ -115,20 +115,33 @@ public class AccountBeanTest {
         //create an account and deposit 1000
         long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey);
         Assert.assertTrue(accountNumber != 0); //make sure account was created
-        boolean status = AccountBean.deposit(accountNumber, 1000);
+        boolean status = AccountBean.depositCash(accountNumber, 1000);
         long balance = AccountBean.balance(accountNumber);
         Assert.assertEquals(1000, balance);
 
         // make sure we can withdraw 400
-        status = AccountBean.withdraw(accountNumber, 400);
+        status = AccountBean.withdrawCash(accountNumber, 400);
         Assert.assertTrue(status);
         Assert.assertEquals(600, AccountBean.balance(accountNumber));
 
         // make sure value can't withdraw below 0
         // value shouldn't change
-        status = AccountBean.withdraw(accountNumber, 601);
+        status = AccountBean.withdrawCash(accountNumber, 601);
         Assert.assertFalse(status);
         Assert.assertEquals(600, AccountBean.balance(accountNumber));
+    }
+
+    @Test
+    public void testTransfer() {
+        long senderAcc = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
+        long recieverAcc = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey);
+
+        AccountBean.depositCash(senderAcc, 1000);
+        Assert.assertEquals(1000, AccountBean.balance(senderAcc));
+
+        Assert.assertTrue(AccountBean.transfer(senderAcc, recieverAcc, 400));
+        Assert.assertEquals(600, AccountBean.balance(senderAcc));
+        Assert.assertEquals(400,AccountBean.balance(recieverAcc));
     }
 
     @Test

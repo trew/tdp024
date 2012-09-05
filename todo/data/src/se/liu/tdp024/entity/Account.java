@@ -2,7 +2,6 @@ package se.liu.tdp024.entity;
 
 import java.io.Serializable;
 import javax.persistence.*;
-import se.liu.tdp024.util.EMF;
 
 /**
  *
@@ -37,8 +36,9 @@ public class Account implements Serializable {
     }
 
     public boolean setAccountType(int type) {
-        if (type < 0 || type > 1)
+        if (type < 0 || type > 1) {
             return false;
+        }
         accountType = type;
         return true;
     }

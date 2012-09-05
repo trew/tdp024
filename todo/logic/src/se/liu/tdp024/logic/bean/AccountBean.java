@@ -8,13 +8,13 @@ import se.liu.tdp024.logic.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
 
 public abstract class AccountBean {
-    public static final Monlog logger = Monlog.getLogger();
+    public static final Monlog LOGGER = Monlog.getLogger();
 
-    private static String PersonAPI_URL = "http://enterprise-systems.appspot.com/person/";
-    private static String BankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
+    private static String personAPI_URL = "http://enterprise-systems.appspot.com/person/";
+    private static String bankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
 
     private static boolean personExists(String personKey) {
-        String resp = HTTPHelper.get(PersonAPI_URL + "find.key", "key", personKey);
+        String resp = HTTPHelper.get(personAPI_URL + "find.key", "key", personKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
         if (json != null) {
@@ -28,7 +28,7 @@ public abstract class AccountBean {
     }
 
     private static boolean bankExists(String bankKey) {
-        String resp = HTTPHelper.get(BankAPI_URL + "find.key", "key", bankKey);
+        String resp = HTTPHelper.get(bankAPI_URL + "find.key", "key", bankKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
         if (json != null) {
@@ -45,9 +45,9 @@ public abstract class AccountBean {
                               String personKey,
                               String bankKey) {
         if (!personExists(personKey)) {
-            logger.log(Monlog.Severity.WARNING,
+            LOGGER.log(Monlog.Severity.WARNING,
                     "Tried to create account without PersonKey",
-                    "AccountType: "+ String.valueOf(accountType) +
+                    "AccountType: "+ accountType +
                     "\nPersonKey: "+ personKey +
                     "\nBankKey: " + bankKey);
             return null;

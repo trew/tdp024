@@ -10,7 +10,7 @@ import se.liu.tdp024.util.Monlog;
  *
  */
 public abstract class AccountFacade {
-    private final static Monlog logger = Monlog.getLogger();
+    private final static Monlog LOGGER = Monlog.getLogger();
 
     public static Account create(int accountType,
                               String personKey,

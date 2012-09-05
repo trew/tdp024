@@ -142,7 +142,7 @@ public class AccountServiceTest {
     public void testWithdraw() {
         AccountService as = new AccountService();
         long testAccount = AccountBean.create(Account.SALARY,
-                ExistingPersonKey, ExistingBankKey);
+                ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
         // Withdraw non-existing money
         Response response = as.withdraw(testAccount, 100);
@@ -171,7 +171,7 @@ public class AccountServiceTest {
         // Set up test-account
         AccountService as = new AccountService();
         long testAccount = AccountBean.create(Account.SALARY,
-                ExistingPersonKey, ExistingBankKey);
+                ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
         // Test valid deposit
         Response response = as.deposit(testAccount, 100);
@@ -195,10 +195,10 @@ public class AccountServiceTest {
         // Set up test-accounts
         AccountService as = new AccountService();
         long recieverAcc = AccountBean.create(Account.SALARY,
-                ExistingPersonKey, ExistingBankKey);
+                ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
         long senderAcc = AccountBean.create(Account.SAVINGS,
-                ExistingPersonKey, ExistingBankKey);
+                ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
         Response response = as.deposit(senderAcc, 100);
         Assert.assertEquals(200, response.getStatus());
@@ -225,6 +225,4 @@ public class AccountServiceTest {
         response = as.transfer(senderAcc, 999, 20);
         Assert.assertEquals(500, response.getStatus());
     }
-
-
 }

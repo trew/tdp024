@@ -22,6 +22,8 @@ public abstract class EMF {
     }
 
     public static void close() {
-        entityManagerFactory.close();
+        if (entityManagerFactory.isOpen()) {
+            entityManagerFactory.close();
+        }
     }
 }

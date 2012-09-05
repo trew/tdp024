@@ -18,28 +18,34 @@ public class AccountService {
     @GET
     @Path("/create")
     public Response createAccount(
-            @QueryParam("personid") String personID,
-            @QueryParam("bankid") String bankID,
-            @QueryParam("type") String accountType) {
+            @QueryParam("personkey") String personKey,
+            @QueryParam("bankkey") String bankKey,
+            @QueryParam("type") int accountType) {
 
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        Account account = AccountBean.create(accountType, personKey, bankKey);
 
+        if (account != null) {
+            String json = GSON.toJson(account);
+            return Response.status(Response.Status.OK).entity(json).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GET
-    @Path("/list.personid")
-    public Response listByPersonID(@QueryParam("id") String id) {
-
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-
+    @Path("/list.personkey")
+    public Response listByPersonKey(@QueryParam("key") String key) {
+        List<Account> accounts = AccountBean.findByPersonKey(key);
+        String json = GSON.toJson(accounts);
+        return Response.status(Response.Status.OK).entity(json).build();
     }
 
     @GET
-    @Path("/list.bankid")
-    public Response listByBankID(@QueryParam("id") String id) {
-
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-
+    @Path("/list.bankkey")
+    public Response listByBankKey(@QueryParam("key") String key) {
+        List<Account> accounts = AccountBean.findByPersonKey(key);
+        String json = GSON.toJson(accounts);
+        return Response.status(Response.Status.OK).entity(json).build();
     }
     /*
      * /account/withdraw          param: acc, amount

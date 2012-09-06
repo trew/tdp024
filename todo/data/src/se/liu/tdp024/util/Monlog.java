@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.Calendar;
 
 public class Monlog {
-    public static boolean LoggingOn = true;
+    public static boolean loggingOn = true;
 
     public static abstract class Severity {
         public static int DEBUG     = 0;
@@ -35,7 +35,7 @@ public class Monlog {
 
     
     public void log(int severity, String shortDescription, String longDescription) {
-        if (!LoggingOn)
+        if (!loggingOn)
             return;
         shortDescription = caller + " " + shortDescription;
 

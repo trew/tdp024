@@ -10,11 +10,11 @@ import se.liu.tdp024.util.Monlog;
 public abstract class AccountBean {
     private static final Monlog LOGGER = Monlog.getLogger();
 
-    private static String personAPI_URL = "http://enterprise-systems.appspot.com/person/";
-    private static String bankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
+    private static String personApiUrl = "http://enterprise-systems.appspot.com/person/";
+    private static String bankApiUrl =   "http://enterprise-systems.appspot.com/bank/";
 
     private static boolean personExists(String personKey) {
-        String resp = HTTPHelper.get(personAPI_URL + "find.key", "key", personKey);
+        String resp = HTTPHelper.get(personApiUrl + "find.key", "key", personKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
         if (json != null) {
@@ -28,7 +28,7 @@ public abstract class AccountBean {
     }
 
     private static boolean bankExists(String bankKey) {
-        String resp = HTTPHelper.get(bankAPI_URL + "find.key", "key", bankKey);
+        String resp = HTTPHelper.get(bankApiUrl + "find.key", "key", bankKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
         if (json != null) {

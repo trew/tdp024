@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import javax.ws.rs.core.Response;
 import org.junit.*;
+import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.logic.bean.AccountBean;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.util.HTTPHelper;
@@ -23,15 +24,15 @@ public class AccountServiceTest {
     public static void setUpClass() throws Exception {
         Monlog.setLoggingOff();
 
-        String PersonAPI_URL = "http://enterprise-systems.appspot.com/person/";
-        String BankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";
+        String personApiUrl = "http://enterprise-systems.appspot.com/person/";
+        String bankApiUrl =   "http://enterprise-systems.appspot.com/bank/";
 
         JsonParser jp = new JsonParser();
         JsonObject jo;
         JsonElement je;
 
         // Get an existing Person for testing
-        String resp = HTTPHelper.get(PersonAPI_URL + "find.name", "name", "Zorro");
+        String resp = HTTPHelper.get(personApiUrl + "find.name", "name", "Zorro");
         Assert.assertFalse("Couldn't connect to PersonAPI", resp == null);
         je = jp.parse(resp); Assert.assertTrue(je.isJsonObject());
         jo = je.getAsJsonObject();
@@ -39,7 +40,7 @@ public class AccountServiceTest {
         ExistingPersonKey = jo.get("key").getAsString();
 
         // Get an existing Bank for testing
-        resp = HTTPHelper.get(BankAPI_URL + "find.name", "name", "SWEDBANK");
+        resp = HTTPHelper.get(bankApiUrl + "find.name", "name", "SWEDBANK");
         Assert.assertFalse("Couldn't connect to BankAPI", resp == null);
         je = jp.parse(resp); Assert.assertTrue(je.isJsonObject());
         jo = je.getAsJsonObject();

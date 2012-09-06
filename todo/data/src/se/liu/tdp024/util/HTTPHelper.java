@@ -51,7 +51,7 @@ public abstract class HTTPHelper {
 
             } else {
                 // Server returned HTTP error code.
-                System.out.println("Failed attempt - Response code was: " + connection.getResponseCode() + " - " + connection.getResponseMessage());
+                //System.out.println("Failed attempt - Response code was: " + connection.getResponseCode() + " - " + connection.getResponseMessage());
                 return null;
             }
         } catch (MalformedURLException e) {

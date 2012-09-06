@@ -74,13 +74,7 @@ public class Monlog {
                     builder.append(line);
                 }
                 reader.close();
-                
-                System.out.println(builder.toString());
-
             } else {
-
-                System.out.println(connection.getResponseCode() + " " + connection.getResponseMessage());
-                
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), "utf-8"));
                 String line;
                 StringBuilder builder = new StringBuilder();
@@ -88,10 +82,6 @@ public class Monlog {
                     builder.append(line);
                 }
                 reader.close();
-                
-                System.out.println(builder.toString());
-
-
             }
 
         } catch (MalformedURLException e) {

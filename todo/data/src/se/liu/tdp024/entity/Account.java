@@ -9,6 +9,8 @@ import javax.persistence.*;
 @Entity
 public class Account implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     public static final int SALARY = 0;
     public static final int SAVINGS = 1;
 

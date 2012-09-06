@@ -4,7 +4,7 @@ import com.google.gson.*;
 import java.util.*;
 import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.facade.AccountFacade;
-import se.liu.tdp024.logic.util.HTTPHelper;
+import se.liu.tdp024.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
 
 public abstract class AccountBean {

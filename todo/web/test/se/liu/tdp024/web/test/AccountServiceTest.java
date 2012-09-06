@@ -6,11 +6,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 import javax.ws.rs.core.Response;
 import org.junit.*;
-import se.liu.tdp024.entity.Account;
-import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.logic.bean.AccountBean;
-import se.liu.tdp024.logic.util.HTTPHelper;
 import se.liu.tdp024.util.EMF;
+import se.liu.tdp024.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
 import se.liu.tdp024.web.service.AccountService;
 

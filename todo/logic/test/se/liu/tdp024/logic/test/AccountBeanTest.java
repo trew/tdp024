@@ -4,14 +4,18 @@
  */
 package se.liu.tdp024.logic.test;
 
-import org.junit.*;
 import com.google.gson.*;
 import java.util.List;
+import junit.framework.Assert;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import se.liu.tdp024.entity.Account;
-import se.liu.tdp024.facade.AccountFacade;
-import se.liu.tdp024.logic.util.HTTPHelper;
 import se.liu.tdp024.logic.bean.AccountBean;
 import se.liu.tdp024.util.EMF;
+import se.liu.tdp024.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
 
 

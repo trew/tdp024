@@ -10,7 +10,7 @@ public final class Monlog {
     public static void setLoggingOn() { loggingOn = true; }
     public static void setLoggingOff() { loggingOn = false; }
 
-    public static abstract class Severity {
+    public abstract static class Severity {
         public static final int DEBUG     = 0;
         public static final int INFO      = 1;
         public static final int NOTIFY    = 2;

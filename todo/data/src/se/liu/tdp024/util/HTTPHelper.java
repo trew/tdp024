@@ -23,7 +23,7 @@ public abstract class HTTPHelper {
                 }
                 path += builder.toString();
             }
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             return null;
         }
 

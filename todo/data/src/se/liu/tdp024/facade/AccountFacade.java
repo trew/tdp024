@@ -31,8 +31,9 @@ public abstract class AccountFacade {
 
             return acc;
 
-        } catch (Exception e) {
+        } catch (EntityExistsException eee) {
             /*
+             * Comes from em.persist();
              * Should log something here
              */
             return null;
@@ -50,8 +51,14 @@ public abstract class AccountFacade {
         EntityManager em = EMF.getEntityManager();
         try {
             return em.find(Account.class, accountNumber);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             /*
+            em.find():
+            Throws:
+                IllegalArgumentException - if the first argument does not denote
+                      an entity type or the second argument is is not a valid
+                      type for that entity's primary key or is null
+             *
              * Log something here
              */
             return null;
@@ -142,7 +149,8 @@ public abstract class AccountFacade {
             em.getTransaction().commit();
             return true;
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            /*  if instance is not an entity or is a removed entity */
             /*
              * Log something here
              */

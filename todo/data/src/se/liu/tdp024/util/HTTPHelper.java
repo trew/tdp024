@@ -13,10 +13,12 @@ public abstract class HTTPHelper {
         try {
             if (parameters != null) {
                 path += "?";
+                StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < parameters.length; i += 2) {
-                    path += parameters[i] + "="
-                            + URLEncoder.encode(parameters[i + 1], "UTF-8") + "&";
+                    builder.append(parameters[i] + "="
+                            + URLEncoder.encode(parameters[i + 1], "UTF-8") + "&");
                 }
+                path += builder.toString();
             }
         } catch (Exception e) {
             return null;

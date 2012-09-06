@@ -16,8 +16,10 @@ public abstract class HTTPHelper {
                 path += "?";
                 StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < parameters.length; i += 2) {
-                    builder.append(parameters[i] + "="
-                            + URLEncoder.encode(parameters[i + 1], "UTF-8") + "&");
+                    builder.append(parameters[i]);
+                    builder.append("=");
+                    builder.append(URLEncoder.encode(parameters[i + 1], "UTF-8"));
+                    builder.append("&");
                 }
                 path += builder.toString();
             }

@@ -38,7 +38,7 @@ public abstract class HTTPHelper {
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
                 InputStream is = connection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, "utf-8"));
 
                 StringBuilder result = new StringBuilder();
                 String line = null;

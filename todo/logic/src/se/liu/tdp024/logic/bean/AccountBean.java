@@ -8,7 +8,7 @@ import se.liu.tdp024.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
 
 public abstract class AccountBean {
-    public static final Monlog LOGGER = Monlog.getLogger();
+    private static final Monlog LOGGER = Monlog.getLogger();
 
     private static String personAPI_URL = "http://enterprise-systems.appspot.com/person/";
     private static String bankAPI_URL =   "http://enterprise-systems.appspot.com/bank/";

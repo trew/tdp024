@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Calendar;
 
-public class Monlog {
+public final class Monlog {
     private static boolean loggingOn = true;
 
     public static void setLoggingOn() { loggingOn = true; }

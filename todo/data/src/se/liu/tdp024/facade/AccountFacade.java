@@ -149,7 +149,7 @@ public abstract class AccountFacade {
             em.getTransaction().commit();
             return true;
 
-        } catch (IllegalArgumentException e) {
+        } catch (RollbackException e) {
             /*  if instance is not an entity or is a removed entity */
             /*
              * Log something here
@@ -167,10 +167,16 @@ public abstract class AccountFacade {
                 /* be saved, success needs to be set to false before recommit */
                 st.setSuccess(false);
                 try {
+                    // getTransaction() raises IllegalStateException
+                    // begin() raises IllegalStateException
+                    // merge() raises IllegalArgumentException
+                    //                TransactionRequiredException
+                    // commit() raises IllegalStateException
+                    //                 RollbackException
                     em.getTransaction().begin();
                     em.merge(st);
                     em.getTransaction().commit();
-                } catch (Exception e) {
+                } catch (RollbackException e) {
                     if(em.getTransaction().isActive()) {
                         em.getTransaction().rollback();
                         /*

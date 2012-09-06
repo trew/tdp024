@@ -39,7 +39,9 @@ public class SavedTransaction implements Serializable {
     }
 
     public Timestamp getDatetime() {
-        return datetime;
+        // Vulnerability to return a reference to mutable object.
+        // Return a clone instead
+        return (Timestamp)datetime.clone();
     }
 
     public long getAmount() {

@@ -5,7 +5,10 @@ import java.net.*;
 import java.util.Calendar;
 
 public class Monlog {
-    public static boolean loggingOn = true;
+    private static boolean loggingOn = true;
+
+    public static void setLoggingOn() { loggingOn = true; }
+    public static void setLoggingOff() { loggingOn = false; }
 
     public static abstract class Severity {
         public static final int DEBUG     = 0;

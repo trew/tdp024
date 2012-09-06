@@ -29,7 +29,7 @@ public class AccountBeanTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        Monlog.loggingOn = false;
+        Monlog.setLoggingOff();
 
         JsonParser jp = new JsonParser();
         JsonObject jo;
@@ -54,7 +54,7 @@ public class AccountBeanTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-            Monlog.loggingOn = true;
+        Monlog.setLoggingOn();
     }
 
     @Before

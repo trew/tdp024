@@ -8,8 +8,9 @@ import java.net.URLEncoder;
 
 public abstract class HTTPHelper {
 
-    public static String get(String path, String... parameters) {
+    public static String get(String requested_path, String... parameters) {
 
+        String path = requested_path;
         try {
             if (parameters != null) {
                 path += "?";

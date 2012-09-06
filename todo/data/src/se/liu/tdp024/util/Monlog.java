@@ -8,14 +8,14 @@ public class Monlog {
     public static boolean loggingOn = true;
 
     public static abstract class Severity {
-        public static int DEBUG     = 0;
-        public static int INFO      = 1;
-        public static int NOTIFY    = 2;
-        public static int WARNING   = 3;
-        public static int ERROR     = 4;
-        public static int CRITICAL  = 5;
-        public static int ALERT     = 6;
-        public static int EMERGENCY = 7;
+        public static final int DEBUG     = 0;
+        public static final int INFO      = 1;
+        public static final int NOTIFY    = 2;
+        public static final int WARNING   = 3;
+        public static final int ERROR     = 4;
+        public static final int CRITICAL  = 5;
+        public static final int ALERT     = 6;
+        public static final int EMERGENCY = 7;
     }
 
     public static Monlog getLogger() {

@@ -37,10 +37,9 @@ public final class Monlog {
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
     
-    public void log(int severity, String shortDescription, String longDescription) {
-        if (!loggingOn)
-            return;
-        shortDescription = caller + " " + shortDescription;
+    public void log(int severity, String shortDescriptionArg, String longDescription) {
+        if (!loggingOn) { return; }
+        String shortDescription = caller + " " + shortDescriptionArg;
 
         StringBuilder dataBuilder = new StringBuilder();
         dataBuilder.append("{");

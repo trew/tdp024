@@ -62,7 +62,7 @@ public class AccountService {
 
         boolean status = AccountBean.withdrawCash(acc, amount);
 
-        if (status == true) {
+        if (status) {
             String json = GSON.toJson(status);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {
@@ -78,7 +78,7 @@ public class AccountService {
 
         boolean status = AccountBean.depositCash(acc, amount);
 
-        if (status == true) {
+        if (status) {
             String json = GSON.toJson(status);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {
@@ -96,7 +96,7 @@ public class AccountService {
 
         boolean status = AccountBean.transfer(senderAcc, recieverAcc, amount);
 
-        if (status == true) {
+        if (status) {
             String json = GSON.toJson(status);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {

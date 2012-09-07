@@ -1,7 +1,7 @@
 package se.liu.tdp024.entity;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.Date;
 import javax.persistence.*;
 
 @Entity
@@ -19,11 +19,16 @@ public class SavedTransaction implements Serializable {
     @Column(nullable = false)
     private long reciever;
 
-    @Column(updatable=false, insertable=false)
-    private Timestamp datetime;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date datetime;
 
     private long amount;
     private boolean success;
+
+    @PrePersist
+    public void onCreate() {
+        datetime = new Date();
+    }
 
     /* Getters */
     public long getID() {
@@ -38,10 +43,10 @@ public class SavedTransaction implements Serializable {
         return reciever;
     }
 
-    public Timestamp getDatetime() {
+    public Date getDatetime() {
         // Vulnerability to return a reference to mutable object.
         // Return a clone instead
-        return (Timestamp)datetime.clone();
+        return datetime == null ? null : (Date)datetime.clone();
     }
 
     public long getAmount() {

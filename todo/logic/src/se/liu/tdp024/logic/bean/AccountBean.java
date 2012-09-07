@@ -8,12 +8,13 @@ import se.liu.tdp024.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
 
 public abstract class AccountBean {
-    private static final Monlog LOGGER = Monlog.getLogger();
+    private static final Monlog LOGGER = Monlog.getLogger(Monlog.Severity.INFO);
 
     private static String personApiUrl = "http://enterprise-systems.appspot.com/person/";
     private static String bankApiUrl =   "http://enterprise-systems.appspot.com/bank/";
 
     private static boolean personExists(String personKey) {
+        if (personKey == null) { return false; }
         String resp = HTTPHelper.get(personApiUrl + "find.key", "key", personKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
@@ -28,6 +29,7 @@ public abstract class AccountBean {
     }
 
     private static boolean bankExists(String bankKey) {
+        if (bankKey == null) { return false; }
         String resp = HTTPHelper.get(bankApiUrl + "find.key", "key", bankKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
@@ -44,6 +46,7 @@ public abstract class AccountBean {
     public static Account create(int accountType,
                               String personKey,
                               String bankKey) {
+
         if (!personExists(personKey)) {
             LOGGER.log(Monlog.Severity.WARNING,
                     "Tried to create account without PersonKey",

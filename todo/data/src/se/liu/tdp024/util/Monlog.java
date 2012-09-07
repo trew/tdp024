@@ -22,24 +22,62 @@ public final class Monlog {
     }
 
     public static Monlog getLogger() {
-        final Throwable t = new Throwable();
-        final StackTraceElement methodCaller = t.getStackTrace()[1];
-        return new Monlog(methodCaller.getClassName());
+        final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
+        Monlog logger = new Monlog(methodCaller[2].getClassName());
+        logger.level = Severity.DEBUG;
+        return logger;
+    }
+    
+    public static Monlog getLogger(int level) {
+        final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
+        return new Monlog(methodCaller[2].getClassName());
+    }
+    
+    public void setLevel(int level) {
+        if (level < Severity.DEBUG || level > Severity.EMERGENCY) { return; }
+        this.level = level;
     }
 
     private Monlog(String caller) {
         this.caller = caller;
+        this.level = Severity.DEBUG;
     }
 
     private String caller;
+    private int level;
+    
     private static final String MONLOG_ENDPOINT = "http://www.ida.liu.se/~TDP024/monlog/api/log/";
     private static final String API_KEY = "423b0ef8aa9b0e030e785a63262c06c81d1beaa7";
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
+    /* Log wrappers to make sure correct calling method is logged. */
+    public void log(int severity, String shortDescriptionArg, String longDescriptionArg) {
+        log(severity, shortDescriptionArg, longDescriptionArg, null);
+    }
+    public void log(int severity, String shortDescriptionArg, String longDescriptionArg, Exception ex) {
+        doLog(severity, shortDescriptionArg, longDescriptionArg, ex);
+    }
     
-    public void log(int severity, String shortDescriptionArg, String longDescription) {
+    private void doLog(int severity, String shortDescriptionArg, String longDescriptionArg, Exception ex) {
         if (!loggingOn) { return; }
-        String shortDescription = caller + " " + shortDescriptionArg;
+        if (severity < level) { return; }
+
+        final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
+        String methodName = methodCaller[3].getMethodName();
+
+        String shortDescription = caller + "." + methodName + " - ";
+        if (ex != null) {
+            shortDescription += ex.toString() + " - ";
+        }
+        shortDescription += shortDescriptionArg;
+        
+        String longDescription = longDescriptionArg;
+        if (ex != null) {
+            longDescription = "\n\nException: " + ex.toString() + "\n";
+            longDescription += "Message: " + ex.getMessage() + "\n\n";
+            longDescription += "Stacktrace --------------------------------\n";
+            longDescription += ex.getStackTrace().toString();
+        }
 
         StringBuilder dataBuilder = new StringBuilder();
         dataBuilder.append("{");

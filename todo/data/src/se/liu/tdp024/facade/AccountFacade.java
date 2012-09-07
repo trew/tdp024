@@ -6,18 +6,31 @@ import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.entity.SavedTransaction;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.util.Monlog;
-/**
- *
- */
-public abstract class AccountFacade {
-    private static final Monlog LOGGER = Monlog.getLogger();
 
+public abstract class AccountFacade {
+    private static final Monlog LOGGER = Monlog.getLogger(Monlog.Severity.INFO);
+
+    /**
+     * Creates a new account and stores it to the database. AccountType is
+     * SALARY or SAVINGS.
+     * 
+     * @param accountType Account.SALARY or Account.SAVINGS
+     * @param personKey A string representing the personKey
+     * @param bankKey A string representing the bankKey
+     * @return the created Account
+     * @see Account
+     */
     public static Account create(int accountType,
                               String personKey,
                               String bankKey) {
+        String debugLongDesc = "AccountType: " + accountType + "\n" +
+                          "PersonKey: " + personKey + "\n" +
+                          "BankKey: "+ bankKey + "\n";
+        
         EntityManager em = EMF.getEntityManager();
         try {
 
+            LOGGER.log(Monlog.Severity.DEBUG, "Beginning Transaction", debugLongDesc);
             em.getTransaction().begin();
 
             Account acc = new Account();
@@ -27,40 +40,50 @@ public abstract class AccountFacade {
 
             em.persist(acc);
 
+            LOGGER.log(Monlog.Severity.DEBUG, "Committing Transaction", debugLongDesc);
             em.getTransaction().commit();
 
             return acc;
 
-        } catch (EntityExistsException eee) {
-            /*
-             * Comes from em.persist();
-             * Should log something here
-             */
-            return null;
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                String shortDesc = "RuntimeException trying to create account.";
+                LOGGER.log(Monlog.Severity.ERROR, shortDesc, debugLongDesc, e);
+                throw (RuntimeException)e;
+            } else {
+                String shortDesc = "Exception trying to create account.";
+                LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
+                return null;
+            }
         } finally {
-
             if(em.getTransaction().isActive()) {
+                LOGGER.log(Monlog.Severity.DEBUG, "Rolling back Account creation", debugLongDesc);
                 em.getTransaction().rollback();
             }
-
             em.close();
         }
     }
 
     public static Account find(long accountNumber) {
+        String debugLongDesc = "AccountNumber: " + accountNumber + "\n";
+
         EntityManager em = EMF.getEntityManager();
         try {
-            return em.find(Account.class, accountNumber);
+            Account acc = em.find(Account.class, accountNumber);
+            if (acc == null) {
+                LOGGER.log(Monlog.Severity.INFO, "Account with accountnumber \"" +
+                            accountNumber + "\" not found.", debugLongDesc);
+            }
+            return acc;
         } catch (IllegalArgumentException e) {
-            /*
-            em.find():
-            Throws:
-                IllegalArgumentException - if the first argument does not denote
-                      an entity type or the second argument is is not a valid
-                      type for that entity's primary key or is null
-             *
-             * Log something here
-             */
+            String longDesc = "IllegalArgumentException\n" +
+                "if the first argument does not denote an entity type or the " +
+                "second argument is is not a valid type for that entity's " +
+                "primary key or is null\n\n";
+            longDesc += "accountNumber: " + accountNumber + "\n";
+            longDesc += "class: " + Account.class.getName() + "\n";
+
+            LOGGER.log(Monlog.Severity.ERROR, e.getMessage(), longDesc, e);
             return null;
         } finally {
             em.close();
@@ -68,136 +91,199 @@ public abstract class AccountFacade {
     }
 
     public static List<Account> findByPersonKey(String personKey) {
+        String debugLongDesc = "PersonKey: " + personKey + "\n";
+
         EntityManager em = EMF.getEntityManager();
         Query query = em.createQuery("SELECT a FROM Account a WHERE a.personKey = :personkey");
         query.setParameter("personkey", personKey);
-        return query.getResultList();
+
+        List resultList = query.getResultList();
+        if (resultList.isEmpty()) {
+            LOGGER.log(Monlog.Severity.INFO, "Accounts for person with PersonKey \"" +
+                        personKey + "\" not found.", debugLongDesc);
+        }
+        return resultList;
     }
 
     public static List<Account> findByBankKey(String bankKey) {
+        String debugLongDesc = "BankKey: " + bankKey + "\n";
+
         EntityManager em = EMF.getEntityManager();
         Query query = em.createQuery("SELECT a FROM Account a WHERE a.bankKey = :bankkey");
         query.setParameter("bankkey", bankKey);
-        return query.getResultList();
+
+        List resultList = query.getResultList();
+        if (resultList.isEmpty()) {
+            LOGGER.log(Monlog.Severity.INFO, "Accounts for bank with BankKey \"" +
+                        bankKey + "\" not found.", debugLongDesc);
+        }
+        return resultList;
     }
 
     public static long balance(long accountNumber) {
+        String debugLongDesc = "AccountNumber: " + accountNumber + "\n";
+        
         Account acc = find(accountNumber);
         if (acc == null) {
+            LOGGER.log(Monlog.Severity.INFO, "Couldn't find account when trying to access balance.", debugLongDesc);
             return -1;
         }
 
         return acc.getBalance();
     }
 
-    private static boolean changeBalance(long sender, long reciever, long amount) {
+    public static boolean transfer(long sender, long reciever, long amount) {
+        String debugLongDesc = "Sender AccountNumber: " + sender + "\n" +
+                               "Reciever AccountNumber: " + reciever + "\n" +
+                               "Amount: " + amount + "\n";
+
         EntityManager em = EMF.getEntityManager();
 
-        SavedTransaction st = new SavedTransaction();
-        st.setSender(sender);
-        st.setReciever(reciever);
-        st.setAmount(amount);
-        st.setSuccess(true); // Crossing fingers, "Everything will be ok!"
-
         try {
+            LOGGER.log(Monlog.Severity.DEBUG, "Starting transaction", debugLongDesc);
             em.getTransaction().begin();
             if (sender == reciever) {
-                /* LOG */
+                LOGGER.log(Monlog.Severity.ERROR, "Cannot transfer to self. (Sender == Reciever)", debugLongDesc);
                 return false;
             }
 
-            Account senderAcc = null;
-            Account recieverAcc = null;
-
             // Check validity of sender account
-            if (sender != 0) {
-                senderAcc = em.find(Account.class, sender, LockModeType.PESSIMISTIC_WRITE);
-                if (senderAcc == null) {
-                    return false;
-                } else {
-                    if ((senderAcc.getBalance() - amount) < 0 ||
-                            (senderAcc.getBalance() - amount) > Long.MAX_VALUE) {
-                        // Value out of range
-                        return false;
-                    }
-                }
+            Account senderAcc = em.find(Account.class, sender, LockModeType.PESSIMISTIC_WRITE);
+            if (senderAcc == null) {
+                LOGGER.log(Monlog.Severity.INFO, "Sender account not found.", debugLongDesc);
+                return false;
             }
 
-            if (reciever != 0) {
-                recieverAcc = em.find(Account.class, reciever, LockModeType.PESSIMISTIC_WRITE);
-                if (recieverAcc == null) {
-                    return false;
-                } else {
-                    if ((recieverAcc.getBalance() + amount) < 0 ||
-                            (recieverAcc.getBalance() + amount) > Long.MAX_VALUE) {
-                        // Value out of range
-                        return false;
-                    }
-                }
+            if ((senderAcc.getBalance() - amount) < 0) {
+                LOGGER.log(Monlog.Severity.INFO, "Not enough money on sender account. Aborting transfer.", debugLongDesc);
+                return false;
             }
 
-            if (senderAcc != null) {
-                senderAcc.changeBalance(-amount);
-                em.merge(senderAcc); // Commit account changes
+            Account recieverAcc = em.find(Account.class, reciever, LockModeType.PESSIMISTIC_WRITE);
+            if (recieverAcc == null) {
+                LOGGER.log(Monlog.Severity.INFO, "Reciever account not found.", debugLongDesc);
+                return false;
             }
-            if (recieverAcc != null) {
-                recieverAcc.changeBalance(amount);
-                em.merge(recieverAcc); // Commit account changes
+            if ((recieverAcc.getBalance() + amount) < 0) {
+                LOGGER.log(Monlog.Severity.NOTIFY, "Reciever account overflowed. Aborting transfer.", debugLongDesc);
+                return false;
             }
+            
+            senderAcc.changeBalance(-amount);
+            recieverAcc.changeBalance(amount);
 
-            em.merge(st);  // Save transaction
+            em.merge(senderAcc); // Commit account changes
+            em.merge(recieverAcc); // Commit account changes
+
+            logTransaction(em, sender, reciever, amount, true);
+            
+            LOGGER.log(Monlog.Severity.DEBUG, "Committing transaction.", debugLongDesc);
             em.getTransaction().commit();
+
             return true;
 
-        } catch (RollbackException e) {
-            /*  if instance is not an entity or is a removed entity */
-            /*
-             * Log something here
-             */
+        } catch (Exception e) {
+            String shortDesc = "";
+            if (e instanceof RuntimeException) {
+                shortDesc += "RuntimeException trying to transfer.";
+                LOGGER.log(Monlog.Severity.ERROR, shortDesc, debugLongDesc, e);
+                throw (RuntimeException)e;
+            } else {
+                shortDesc += "Exception trying to transfer.";
+                LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
+            }
             return false;
 
         } finally {
             /* If the transaction is still active, the commit never happened. */
             /* Do a barrel rollback. */
             if(em.getTransaction().isActive()) {
+                LOGGER.log(Monlog.Severity.DEBUG, "Rolling back transfer", debugLongDesc);
                 em.getTransaction().rollback();
-
-                /* We had to rollback the SavedTransaction, so recommit it */
-                /* Also, if the SavedTransaction raised exception and couldn't */
-                /* be saved, success needs to be set to false before recommit */
-                st.setSuccess(false);
                 try {
-                    // getTransaction() raises IllegalStateException
-                    // begin() raises IllegalStateException
-                    // merge() raises IllegalArgumentException
-                    //                TransactionRequiredException
-                    // commit() raises IllegalStateException
-                    //                 RollbackException
-                    em.getTransaction().begin();
-                    em.merge(st);
-                    em.getTransaction().commit();
-                } catch (RollbackException e) {
-                    if(em.getTransaction().isActive()) {
-                        em.getTransaction().rollback();
-                        /*
-                         * Couldn't save SavedTransaction. Log to monlog
-                         */
-                    }
+                    logTransaction(em, sender, reciever, amount, false);
+                } catch (Exception e) {
+                    LOGGER.log(Monlog.Severity.CRITICAL, "Transaction couldn't be logged to database!", debugLongDesc);
                 }
             }
             em.close();
         }
     }
 
-    public static boolean transfer(long sender, long reciever, long amount) {
-        return changeBalance(sender, reciever, amount);
-    }
+    private static boolean changeBalanceCash(long account, long amount) {
+        String debugLongDesc = "Changing balance of AccountNumber: " + account + "\n" +
+                               "Amount: " + amount + "\n";
 
+        EntityManager em = EMF.getEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            Account acc = em.find(Account.class, account, LockModeType.PESSIMISTIC_WRITE);
+            if (acc == null) {
+                return false;
+            }
+            if ((acc.getBalance() + amount) < 0) {
+                // Value out of range
+                // This also works for when value goes above
+                // Long.MAX_VALUE
+                LOGGER.log(Monlog.Severity.INFO, "Balance lower than 0 or higher than Long.MAX_VALUE. Aborting changeBalance.", debugLongDesc);
+                return false;
+            }
+
+            acc.changeBalance(amount);
+
+            em.merge(acc); // Commit account changes
+            logTransaction(em, account, 0, amount, true);
+
+            LOGGER.log(Monlog.Severity.DEBUG, "Committing transaction.", debugLongDesc);
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception e) {
+            String shortDesc = "";
+            if (e instanceof RuntimeException) {
+                shortDesc += "RuntimeException trying to change balance of account.";
+                LOGGER.log(Monlog.Severity.ERROR, shortDesc, debugLongDesc, e);
+                throw (RuntimeException)e;
+            } else {
+                shortDesc += "Exception trying to change balance of account.";
+                LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
+            }
+            return false;
+
+        } finally {
+            /* If the transaction is still active, the commit never happened. */
+            /* Do a barrel rollback. */
+            if(em.getTransaction().isActive()) {
+                LOGGER.log(Monlog.Severity.DEBUG, "Rolling back transfer", debugLongDesc);
+                em.getTransaction().rollback();
+                try {
+                    logTransaction(em, account, 0, amount, false);
+                } catch (Exception e) {
+                    /* Couldn't log Transaction */
+                    LOGGER.log(Monlog.Severity.CRITICAL, "Transaction couldn't be logged to database!", debugLongDesc);
+                }
+            }
+            em.close();
+        }
+    }
     public static boolean withdrawCash(long account, long amount) {
-        return changeBalance(account, 0, amount);
+        return changeBalanceCash(account, -amount);
     }
 
     public static boolean depositCash(long account, long amount) {
-        return changeBalance(0, account, amount);
+        return changeBalanceCash(account, amount);
+    }
+
+    private static void logTransaction(EntityManager em, long sender, long reciever, long amount, boolean success) throws Exception{
+        SavedTransaction st = new SavedTransaction();
+        st.setSender(sender);
+        st.setReciever(reciever);
+        st.setAmount(amount);
+        st.setSuccess(success);
+
+        em.persist(st);
     }
 }

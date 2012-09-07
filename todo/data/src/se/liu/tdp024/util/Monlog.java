@@ -50,6 +50,26 @@ public final class Monlog {
     private static final String API_KEY = "423b0ef8aa9b0e030e785a63262c06c81d1beaa7";
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
+    private String buildResponse(int severity, String shortDesc, String longDesc) {
+        StringBuilder dataBuilder = new StringBuilder();
+        dataBuilder.append("{");
+        dataBuilder.append("\"").append("severity").append("\":").append(severity).append(",");
+        dataBuilder.append("\"").append("timestamp").append("\":\"").append(Calendar.getInstance().getTimeInMillis()).append("\",");
+        dataBuilder.append("\"").append("short_desc").append("\":\"").append(shortDesc).append("\",");
+        dataBuilder.append("\"").append("long_desc").append("\":\"").append(longDesc).append("\"");
+        dataBuilder.append("}");
+        // make newlines safe
+        return dataBuilder.toString().replaceAll("\\\n", "\\\\n");
+    }
+    
+    private String getStackTrace(Exception ex) {
+            // http://stackoverflow.com/questions/1149703/stacktrace-to-string-in-java
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            return sw.toString(); // stack trace as a string
+    }
+    
     /* Log wrappers to make sure correct calling method is logged. */
     public void log(int severity, String shortDescArg, String longDescArg) {
         log(severity, shortDescArg, longDescArg, null);
@@ -72,23 +92,11 @@ public final class Monlog {
             longDescription = "\n\nException: " + ex.toString() + "\n";
             longDescription += "Message: " + ex.getMessage() + "\n\n";
             longDescription += "Stacktrace --------------------------------\n";
-
-            // http://stackoverflow.com/questions/1149703/stacktrace-to-string-in-java
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            longDescription += sw.toString(); // stack trace as a string
+            longDescription += getStackTrace(ex);
         }
         shortDescription += shortDescArg;
         
-        StringBuilder dataBuilder = new StringBuilder();
-        dataBuilder.append("{");
-        dataBuilder.append("\"").append("severity").append("\":").append(severity).append(",");
-        dataBuilder.append("\"").append("timestamp").append("\":\"").append(Calendar.getInstance().getTimeInMillis()).append("\",");
-        dataBuilder.append("\"").append("short_desc").append("\":\"").append(shortDescription).append("\",");
-        dataBuilder.append("\"").append("long_desc").append("\":\"").append(longDescription).append("\"");
-        dataBuilder.append("}");
-
+        String json = buildResponse(severity, shortDescription, longDescription);
         try {
 
             URL url = new URL(REQUEST_URL);
@@ -98,8 +106,6 @@ public final class Monlog {
             connection.setConnectTimeout(60000);
             connection.setRequestMethod("POST");
 
-            // make newlines safe
-            String json = dataBuilder.toString().replaceAll("\\\n", "\\\\n");
             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), "utf-8");
             writer.write(json);
             writer.close();
@@ -128,8 +134,5 @@ public final class Monlog {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
     }
 }

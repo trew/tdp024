@@ -46,15 +46,9 @@ public abstract class AccountFacade {
             return acc;
 
         } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                String shortDesc = "RuntimeException trying to create account.";
-                LOGGER.log(Monlog.Severity.ERROR, shortDesc, debugLongDesc, e);
-                throw (RuntimeException)e;
-            } else {
-                String shortDesc = "Exception trying to create account.";
-                LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
-                return null;
-            }
+            String shortDesc = "Exception trying to create account.";
+            LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
+            return null;
         } finally {
             if(em.getTransaction().isActive()) {
                 LOGGER.log(Monlog.Severity.DEBUG, "Rolling back Account creation", debugLongDesc);
@@ -183,15 +177,8 @@ public abstract class AccountFacade {
             return true;
 
         } catch (Exception e) {
-            String shortDesc = "";
-            if (e instanceof RuntimeException) {
-                shortDesc += "RuntimeException trying to transfer.";
-                LOGGER.log(Monlog.Severity.ERROR, shortDesc, debugLongDesc, e);
-                throw (RuntimeException)e;
-            } else {
-                shortDesc += "Exception trying to transfer.";
-                LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
-            }
+            String shortDesc = "Exception trying to transfer.";
+            LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
             return false;
 
         } finally {
@@ -242,17 +229,9 @@ public abstract class AccountFacade {
             return true;
 
         } catch (Exception e) {
-            String shortDesc = "";
-            if (e instanceof RuntimeException) {
-                shortDesc += "RuntimeException trying to change balance of account.";
-                LOGGER.log(Monlog.Severity.ERROR, shortDesc, debugLongDesc, e);
-                throw (RuntimeException)e;
-            } else {
-                shortDesc += "Exception trying to change balance of account.";
-                LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
-            }
+            String shortDesc = "Exception trying to change balance of account.";
+            LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
             return false;
-
         } finally {
             /* If the transaction is still active, the commit never happened. */
             /* Do a barrel rollback. */
@@ -277,7 +256,7 @@ public abstract class AccountFacade {
         return changeBalanceCash(account, amount);
     }
 
-    private static void logTransaction(EntityManager em, long sender, long reciever, long amount, boolean success) throws Exception{
+    private static void logTransaction(EntityManager em, long sender, long reciever, long amount, boolean success) {
         SavedTransaction st = new SavedTransaction();
         st.setSender(sender);
         st.setReciever(reciever);

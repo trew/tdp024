@@ -8,9 +8,9 @@ import java.net.URLEncoder;
 
 public abstract class HTTPHelper {
 
-    public static String get(String requested_path, String... parameters) {
+    public static String get(String requestedPath, String... parameters) {
 
-        String path = requested_path;
+        String path = requestedPath;
         try {
             if (parameters != null) {
                 path += "?";
@@ -51,14 +51,11 @@ public abstract class HTTPHelper {
 
             } else {
                 // Server returned HTTP error code.
-                //System.out.println("Failed attempt - Response code was: " + connection.getResponseCode() + " - " + connection.getResponseMessage());
                 return null;
             }
         } catch (MalformedURLException e) {
-            e.printStackTrace();
             return null;
         } catch (IOException e) {
-            e.printStackTrace();
             return null;
         }
     }

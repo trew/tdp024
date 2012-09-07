@@ -51,34 +51,36 @@ public final class Monlog {
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
     /* Log wrappers to make sure correct calling method is logged. */
-    public void log(int severity, String shortDescriptionArg, String longDescriptionArg) {
-        log(severity, shortDescriptionArg, longDescriptionArg, null);
+    public void log(int severity, String shortDescArg, String longDescArg) {
+        log(severity, shortDescArg, longDescArg, null);
     }
-    public void log(int severity, String shortDescriptionArg, String longDescriptionArg, Exception ex) {
-        doLog(severity, shortDescriptionArg, longDescriptionArg, ex);
+    public void log(int severity, String shortDescArg, String longDescArg, Exception ex) {
+        doLog(severity, shortDescArg, longDescArg, ex);
     }
     
-    private void doLog(int severity, String shortDescriptionArg, String longDescriptionArg, Exception ex) {
-        if (!loggingOn) { return; }
-        if (severity < level) { return; }
+    private void doLog(int severity, String shortDescArg, String longDescArg, Exception ex) {
+        if (!loggingOn || severity < level) { return; }
 
         final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
         String methodName = methodCaller[3].getMethodName();
 
         String shortDescription = caller + "." + methodName + " - ";
+        String longDescription = longDescArg;
         if (ex != null) {
             shortDescription += ex.toString() + " - ";
-        }
-        shortDescription += shortDescriptionArg;
-        
-        String longDescription = longDescriptionArg;
-        if (ex != null) {
+            
             longDescription = "\n\nException: " + ex.toString() + "\n";
             longDescription += "Message: " + ex.getMessage() + "\n\n";
             longDescription += "Stacktrace --------------------------------\n";
-            longDescription += ex.getStackTrace().toString();
-        }
 
+            // http://stackoverflow.com/questions/1149703/stacktrace-to-string-in-java
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            longDescription += sw.toString(); // stack trace as a string
+        }
+        shortDescription += shortDescArg;
+        
         StringBuilder dataBuilder = new StringBuilder();
         dataBuilder.append("{");
         dataBuilder.append("\"").append("severity").append("\":").append(severity).append(",");

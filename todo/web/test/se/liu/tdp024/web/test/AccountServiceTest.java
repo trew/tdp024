@@ -104,7 +104,7 @@ public class AccountServiceTest {
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
         AccountService service = new AccountService();
 
-        Response response = service.listByBankKey(ExistingPersonKey);
+        Response response = service.listByBankKey(ExistingBankKey);
         Assert.assertEquals(200, response.getStatus());
 
         Object entity = response.getEntity();

@@ -5,7 +5,6 @@ import java.util.List;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import se.liu.tdp024.entity.Account;
-import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.logic.bean.AccountBean;
 
 @Path("/account")

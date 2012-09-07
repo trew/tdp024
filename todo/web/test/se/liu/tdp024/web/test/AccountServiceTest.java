@@ -144,7 +144,7 @@ public class AccountServiceTest {
                 ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
         // Withdraw non-existing money
-        Response response = as.withdraw(testAccount, 100);
+        Response response = as.withdraw(testAccount, 100L);
         Assert.assertEquals(500, response.getStatus());
 
         // Deposit cash for testing purposes and try a valid withdraw
@@ -153,15 +153,15 @@ public class AccountServiceTest {
         // Verify money transfered
         Assert.assertEquals(200, AccountBean.balance(testAccount));
 
-        response = as.withdraw(testAccount, 80);
+        response = as.withdraw(testAccount, 80L);
         Assert.assertEquals(200, response.getStatus());
 
         // Try to withdraw negative amount
-        response = as.withdraw(testAccount, -50);
+        response = as.withdraw(testAccount, -50L);
         Assert.assertEquals(500,response.getStatus());
 
         // Try to withdraw from nonexisting account.
-        response = as.withdraw(999, 100);
+        response = as.withdraw(999L, 100L);
         Assert.assertEquals(500,response.getStatus());
     }
 

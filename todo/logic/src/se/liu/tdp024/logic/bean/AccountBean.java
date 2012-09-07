@@ -18,14 +18,7 @@ public abstract class AccountBean {
         String resp = HTTPHelper.get(personApiUrl + "find.key", "key", personKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
-        if (json != null) {
-            return json.isJsonObject();
-        } else {
-            /*
-             * Log the response from PersonAPI
-             */
-            return false;
-        }
+        return json.isJsonObject();
     }
 
     private static boolean bankExists(String bankKey) {
@@ -33,14 +26,7 @@ public abstract class AccountBean {
         String resp = HTTPHelper.get(bankApiUrl + "find.key", "key", bankKey);
         JsonParser jp = new JsonParser();
         JsonElement json = jp.parse(resp);
-        if (json != null) {
-            return json.isJsonObject();
-        } else {
-            /*
-             * Log the response from BankAPI
-             */
-            return false;
-        }
+        return json.isJsonObject();
     }
 
     public static Account create(int accountType,

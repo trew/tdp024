@@ -12,7 +12,6 @@ import org.junit.*;
 import se.liu.tdp024.entity.*;
 import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.util.EMF;
-import se.liu.tdp024.util.Monlog;
 
 /**
  *

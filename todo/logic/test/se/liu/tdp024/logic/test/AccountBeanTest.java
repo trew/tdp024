@@ -195,6 +195,12 @@ public class AccountBeanTest {
     }
 
     @Test
+    public void testBadTransfer() {
+        createAccountsForTransferTests();
+        Assert.assertFalse(AccountBean.transfer(sender, reciever, -50));
+    }
+
+    @Test
     public void testTransfer() {
         createAccountsForTransferTests();
         status = AccountBean.depositCash(sender, 1000); // deposit 1000 to sender account

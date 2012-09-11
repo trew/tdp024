@@ -97,6 +97,12 @@ public class AccountServiceTest {
 
     @Test
     public void testListByPersonID() {
+        // Make sure response is valid even if person doesn't have any
+        // accounts yet.
+        response = accountService.listByPersonKey(ExistingPersonKey);
+        Assert.assertEquals(200, response.getStatus());
+
+        // Create two accounts
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
 
@@ -110,7 +116,23 @@ public class AccountServiceTest {
     }
 
     @Test
+    public void testListByPersonIDFailure() {
+        // Missing args
+        response = accountService.listByPersonKey(null);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Invalid personKey
+        response = accountService.listByPersonKey("nonExisting");
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
     public void testListByBankID() {
+        // Make sure response is valid even if bank doesn't have any
+        // accounts yet.
+        response = accountService.listByBankKey(ExistingPersonKey);
+        Assert.assertEquals(200, response.getStatus());
+
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
 
@@ -124,25 +146,14 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void testListByPersonIDFailure() {
-        response = accountService.listByPersonKey("");
-        Assert.assertEquals(200, response.getStatus());
-
-        Object entity = response.getEntity();
-        Type listType = new TypeToken<List<Account>>(){}.getType();
-        List<Account> accounts = new Gson().fromJson((String)entity, listType);
-        Assert.assertEquals(0, accounts.size());
-    }
-
-    @Test
     public void testListByBankIDFailure() {
-        response = accountService.listByBankKey("");
-        Assert.assertEquals(200, response.getStatus());
+        // Missing args
+        response = accountService.listByBankKey(null);
+        Assert.assertEquals(500, response.getStatus());
 
-        Object entity = response.getEntity();
-        Type listType = new TypeToken<List<Account>>(){}.getType();
-        List<Account> accounts = new Gson().fromJson((String)entity, listType);
-        Assert.assertEquals(0, accounts.size());
+        // Invalid personKey
+        response = accountService.listByBankKey("nonExisting");
+        Assert.assertEquals(500, response.getStatus());
     }
 
     /* Transfer functions */
@@ -267,6 +278,21 @@ public class AccountServiceTest {
         AccountBean.depositCash(reciever, 100);
 
         response = accountService.transfer(sender, reciever, Long.MAX_VALUE);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testBadTransfer() {
+        setUpAccounts();
+        AccountBean.depositCash(sender, 100);
+
+        response = accountService.transfer(null, reciever, 100L);
+        Assert.assertEquals(500, response.getStatus());
+
+        response = accountService.transfer(sender, null, 100L);
+        Assert.assertEquals(500, response.getStatus());
+
+        response = accountService.transfer(sender, reciever, null);
         Assert.assertEquals(500, response.getStatus());
     }
 

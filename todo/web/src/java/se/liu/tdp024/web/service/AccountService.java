@@ -8,7 +8,7 @@ import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.logic.bean.AccountBean;
 
 /**
- * A service that provides an API for creating bankaccounts and
+ * A service that provides an API for creating bank accounts and
  * providing bank-related operations such as deposit, withdraw and
  * transfer.
  *
@@ -56,9 +56,12 @@ public class AccountService {
 
     /**
      * Lists all accounts connected to the specified personkey.
+     * If the personKey doesn't exist, return Internal Server Error.
      *
      * @param key   An unique key identifying the person
      * @return      Returns an array of accounts in JSON-format
+     *              Internal server error if personKey does not
+     *              exist.
      */
     @GET
     @Path("/list.personkey")

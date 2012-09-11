@@ -96,6 +96,10 @@ public class AccountFacadeTest {
         // Bad param
         Account account = AccountFacade.find(-5);
         Assert.assertNull(account);
+
+        // For code coverage; this should trigger IllegalArgumentException,
+        // and then return null
+        Assert.assertNull(AccountFacade.find(0));
     }
 
     @Test
@@ -170,7 +174,8 @@ public class AccountFacadeTest {
     @Test
     public void testTransferInvalidReciever() {
         createAccountsForTransferTests();
-        status = AccountFacade.transfer(sender, 3, 100);
+        AccountFacade.depositCash(sender, 100);
+        status = AccountFacade.transfer(sender, 3, 0);
         Assert.assertFalse(status);
     }
 

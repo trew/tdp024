@@ -81,6 +81,23 @@ public class AccountServiceTest {
                                                   "",
                                                   Account.SALARY);
         Assert.assertEquals(500, response.getStatus());
+
+        response = service.createAccount(null,
+                                         ExistingBankKey,
+                                         Account.SALARY);
+        Assert.assertEquals(500, response.getStatus());
+
+
+        response = service.createAccount(ExistingPersonKey,
+                                         null,
+                                         Account.SALARY);
+        Assert.assertEquals(500, response.getStatus());
+
+
+        response = service.createAccount(ExistingPersonKey,
+                                         ExistingBankKey,
+                                         null);
+        Assert.assertEquals(500, response.getStatus());
     }
 
     @Test
@@ -163,6 +180,13 @@ public class AccountServiceTest {
         // Try to withdraw from nonexisting account.
         response = as.withdraw(999L, 100L);
         Assert.assertEquals(500,response.getStatus());
+
+        // Try to withdraw with invalid input values (null)
+        response = as.withdraw(null, 100L);
+        Assert.assertEquals(500,response.getStatus());
+
+        response = as.withdraw(50L, null);
+        Assert.assertEquals(500, response.getStatus());
     }
 
     @Test

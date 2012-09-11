@@ -7,11 +7,28 @@ import javax.ws.rs.core.Response;
 import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.logic.bean.AccountBean;
 
+/**
+ * A service that provides an API for creating bankaccounts and
+ * providing bank-related operations such as deposit, withdraw and
+ * transfer.
+ *
+ * @author bjoek022 & saman356
+ */
 @Path("/account")
 public class AccountService {
 
     private static final Gson GSON = new Gson();
 
+
+    /**
+     * Creates a new account using the specified parameters.
+     *
+     * @param personKey     The unique key identifying the person
+     * @param bankKey       The unique key identifying the bank
+     * @param accountType   Type of account where Salary = 0, Savings = 1
+     * @return              Returns the created account in JSON-format
+     *
+     */
     @GET
     @Path("/create")
     public Response createAccount(
@@ -20,9 +37,10 @@ public class AccountService {
             @QueryParam("type") Integer accountType) {
 
         if (bankKey == null || personKey == null || accountType == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            String json = "{'error' : 'missing input parameters' }";
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
         }
-        
+
         Account account = AccountBean.create(accountType, personKey, bankKey);
 
         if (account != null) {
@@ -33,6 +51,12 @@ public class AccountService {
         }
     }
 
+    /**
+     * Lists all accounts connected to the specified personkey.
+     *
+     * @param key   An unique key identifying the person
+     * @return      Returns an array of accounts in JSON-format
+     */
     @GET
     @Path("/list.personkey")
     public Response listByPersonKey(@QueryParam("key") String key) {
@@ -41,6 +65,12 @@ public class AccountService {
         return Response.status(Response.Status.OK).entity(json).build();
     }
 
+    /**
+     * Lists all accounts connected to the specified bankkey.
+     *
+     * @param key   An unique key identifying the bank
+     * @return      Returns an array of accounts in JSON-format
+     */
     @GET
     @Path("/list.bankkey")
     public Response listByBankKey(@QueryParam("key") String key) {
@@ -48,20 +78,22 @@ public class AccountService {
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
     }
-    /*
-     * /account/withdraw          param: acc, amount
-     * /account/deposit           param: acc, amount
-     * /account/transfer          param: sender, reciever, amount
+
+    /**
+     * Withdraws an amount of money from an account
+     *
+     * @param acc       The accountnumber of the account
+     * @param amount    The amount to be withdrawn
+     * @return          Status-code (200 - OK / 500 - Internal server error)
      */
-
-
     @GET
     @Path("/withraw")
     public Response withdraw(
             @QueryParam("acc") Long acc,
             @QueryParam("amount") Long amount) {
         if (acc == null || amount == null) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            String json = "{'error' : 'missing input parameters'}";
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
         }
 
         boolean status = AccountBean.withdrawCash(acc, amount);
@@ -74,6 +106,13 @@ public class AccountService {
         }
     }
 
+    /**
+     * Deposits an amount of money to an account
+     *
+     * @param acc       The accountnumber of the account
+     * @param amount    The amount to be deposited
+     * @return          Status-code (200 - OK / 500 - Internal server error)
+     */
     @GET
     @Path("/deposit")
     public Response deposit(
@@ -90,7 +129,14 @@ public class AccountService {
         }
     }
 
-
+    /**
+     * Transfers an amount of money from a sender account to a reciever account
+     *
+     * @param senderAcc     The account that money should be transfered from
+     * @param recieverAcc   The account that money should be transfered to
+     * @param amount        The amount of money to transfer
+     * @return              Status-code (200 - OK / 500 - Internal server error)
+     */
     @GET
     @Path("/transfer")
     public Response transfer(

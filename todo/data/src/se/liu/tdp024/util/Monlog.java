@@ -78,7 +78,7 @@ public final class Monlog {
     }
     
     private void doLog(Severity severity, String shortDescArg, String longDescArg, Exception ex) {
-        if (!loggingOn) { return; }
+        if (!loggingOn || severity.ordinal() < level.ordinal()) { return; }
 
         final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
         String methodName = methodCaller[3].getMethodName();

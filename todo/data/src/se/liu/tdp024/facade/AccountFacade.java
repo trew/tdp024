@@ -13,7 +13,7 @@ public abstract class AccountFacade {
     /**
      * Creates a new account and stores it to the database. AccountType is
      * SALARY or SAVINGS.
-     * 
+     *
      * @param accountType Account.SALARY or Account.SAVINGS
      * @param personKey A string representing the personKey
      * @param bankKey A string representing the bankKey
@@ -26,7 +26,7 @@ public abstract class AccountFacade {
         String debugLongDesc = "AccountType: " + accountType + "\n" +
                           "PersonKey: " + personKey + "\n" +
                           "BankKey: "+ bankKey + "\n";
-        
+
         EntityManager em = EMF.getEntityManager();
         try {
 
@@ -119,7 +119,7 @@ public abstract class AccountFacade {
 
     public static long balance(long accountNumber) {
         String debugLongDesc = "AccountNumber: " + accountNumber + "\n";
-        
+
         Account acc = find(accountNumber);
         if (acc == null) {
             LOGGER.log(Monlog.Severity.INFO, "Couldn't find account when trying to access balance.", debugLongDesc);
@@ -165,7 +165,7 @@ public abstract class AccountFacade {
                 LOGGER.log(Monlog.Severity.NOTIFY, "Reciever account overflowed. Aborting transfer.", debugLongDesc);
                 return false;
             }
-            
+
             senderAcc.changeBalance(-amount);
             recieverAcc.changeBalance(amount);
 
@@ -173,7 +173,7 @@ public abstract class AccountFacade {
             em.merge(recieverAcc); // Commit account changes
 
             logTransaction(em, sender, reciever, amount, true);
-            
+
             LOGGER.log(Monlog.Severity.DEBUG, "Committing transaction.", debugLongDesc);
             em.getTransaction().commit();
 

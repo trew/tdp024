@@ -67,6 +67,12 @@ public class AccountService {
             return missingArgumentResponse();
         }
         List<Account> accounts = AccountBean.findByPersonKey(key);
+
+        if(accounts == null) {
+            String json = "{'error' : 'Person cannot be found.'}";
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+        }
+
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
     }

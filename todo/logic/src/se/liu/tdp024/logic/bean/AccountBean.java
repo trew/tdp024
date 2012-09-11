@@ -53,6 +53,9 @@ public abstract class AccountBean {
     }
 
     public static List<Account> findByPersonKey(String personKey) {
+        if(!personExists(personKey)) {
+            return null;
+        }
         return AccountFacade.findByPersonKey(personKey);
     }
 

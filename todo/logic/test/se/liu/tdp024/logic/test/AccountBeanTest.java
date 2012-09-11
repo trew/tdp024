@@ -6,6 +6,8 @@ package se.liu.tdp024.logic.test;
 
 import com.google.gson.*;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -13,6 +15,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import se.liu.tdp024.entity.Account;
+import se.liu.tdp024.entity.SavedTransaction;
 import se.liu.tdp024.logic.bean.AccountBean;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.util.HTTPHelper;
@@ -96,74 +99,6 @@ public class AccountBeanTest {
     }
 
     @Test
-    public void testDeposit() {
-        //create an account
-        long accountNumber = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey).getAccountNumber();
-        Assert.assertTrue(accountNumber != 0); //make sure account was created
-
-        // make sure 100 can be deposited
-        long balance = AccountBean.balance(accountNumber);
-        boolean status = AccountBean.depositCash(accountNumber, 100);
-        Assert.assertTrue(status);
-        Assert.assertEquals(100, AccountBean.balance(accountNumber));
-
-        // make sure value can't exceed Long.MAX_VALUE
-        // value shouldn't change
-        status = AccountBean.depositCash(accountNumber, Long.MAX_VALUE);
-        Assert.assertFalse(status);
-        Assert.assertEquals(100, AccountBean.balance(accountNumber));
-    }
-
-    @Test
-    public void testWithdraw() {
-        //create an account and deposit 1000
-        long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
-        Assert.assertTrue(accountNumber != 0); //make sure account was created
-        boolean status = AccountBean.depositCash(accountNumber, 1000);
-        long balance = AccountBean.balance(accountNumber);
-        Assert.assertEquals(1000, balance);
-
-        // make sure we can withdraw 400
-        status = AccountBean.withdrawCash(accountNumber, 400);
-        Assert.assertTrue(status);
-        Assert.assertEquals(600, AccountBean.balance(accountNumber));
-
-        // make sure value can't withdraw below 0
-        // value shouldn't change
-        status = AccountBean.withdrawCash(accountNumber, 601);
-        Assert.assertFalse(status);
-        Assert.assertEquals(600, AccountBean.balance(accountNumber));
-    }
-
-    @Test
-    public void testTransfer() {
-        long senderAcc = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey).getAccountNumber();
-        long recieverAcc = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
-
-        AccountBean.depositCash(senderAcc, 1000);
-        Assert.assertEquals(1000, AccountBean.balance(senderAcc));
-
-        Assert.assertTrue(AccountBean.transfer(senderAcc, recieverAcc, 400));
-        Assert.assertEquals(600, AccountBean.balance(senderAcc));
-        Assert.assertEquals(400,AccountBean.balance(recieverAcc));
-    }
-
-    @Test
-    public void testGetAccount() {
-        //create an account
-        long accountNumber = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
-        Assert.assertTrue(accountNumber != 0); //make sure account was created
-
-        // try retrieving the account
-        Account acc = AccountBean.getAccount(accountNumber);
-        Assert.assertNotNull(acc);
-        Assert.assertEquals(Account.SAVINGS, acc.getAccountType());
-
-        // try retrieving an account that doesn't exist
-        Assert.assertNull(AccountBean.getAccount(123));
-    }
-
-    @Test
     public void testFindByBankKey() {
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
@@ -195,5 +130,149 @@ public class AccountBeanTest {
         // existing person
         List<Account> emptyAccounts = AccountBean.findByPersonKey(nonExistingPersonKey);
         Assert.assertEquals(0, emptyAccounts.size());
+    }
+
+    long sender;
+    long reciever;
+    boolean status;
+
+    private void createAccountsForTransferTests() {
+        sender   = AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey).getAccountNumber();
+        reciever = AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey).getAccountNumber();
+        Assert.assertFalse(sender == reciever || sender == 0 || reciever == 0);
+    }
+
+    @Test
+    public void testTransferToSelf() {
+        // Transfer to self not possible
+        createAccountsForTransferTests();
+        status = AccountBean.transfer(sender, sender, 100);
+        Assert.assertFalse(status);
+    }
+
+    @Test
+    public void testTransferInvalidSender() {
+        createAccountsForTransferTests();
+        status = AccountBean.transfer(3, reciever, 100);
+        Assert.assertFalse(status);
+    }
+
+    @Test
+    public void testTransferInvalidReciever() {
+        createAccountsForTransferTests();
+        status = AccountBean.transfer(sender, 3, 100);
+        Assert.assertFalse(status);
+    }
+
+    @Test
+    public void testTransferNotEnoughMoneyOnSender() {
+        createAccountsForTransferTests();
+        Account senderAcc = AccountBean.getAccount(sender);
+        Assert.assertEquals(0, senderAcc.getBalance());
+
+        status = AccountBean.transfer(sender, reciever, 1);
+        Assert.assertFalse(status);
+    }
+
+    @Test
+    public void testTransferRecieverOverflowed() {
+        createAccountsForTransferTests();
+        status = AccountBean.depositCash(sender, Long.MAX_VALUE);
+        Assert.assertTrue(status);
+        status = AccountBean.depositCash(reciever, 100);
+        Assert.assertTrue(status);
+
+        status = AccountBean.transfer(sender, reciever, Long.MAX_VALUE);
+        Assert.assertFalse(status);
+    }
+
+    @Test
+    public void testTransfer() {
+        createAccountsForTransferTests();
+        status = AccountBean.depositCash(sender, 1000); // deposit 1000 to sender account
+        Assert.assertTrue(status);
+        Assert.assertEquals(1000, AccountBean.balance(sender));
+        Assert.assertEquals(0, AccountBean.balance(reciever));
+
+        status = AccountBean.transfer(sender, reciever, 300);
+        Assert.assertTrue(status);
+        Assert.assertEquals(700, AccountBean.balance(sender));
+        Assert.assertEquals(300, AccountBean.balance(reciever));
+    }
+
+    @Test
+    public void testSavedTransaction() {
+        createAccountsForTransferTests();
+        status = AccountBean.depositCash(sender, 1000); // deposit 1000 to sender account
+        Assert.assertTrue(status);
+
+        status = AccountBean.transfer(sender, reciever, 300);
+        Assert.assertTrue(status);
+
+        // Make sure the transaction is saved
+        EntityManager em = EMF.getEntityManager();
+        Query q = em.createQuery("SELECT t FROM SavedTransaction t;");
+        SavedTransaction st = null;
+        List results = q.getResultList();
+        if (results.size() == 2) {
+            st = (SavedTransaction)results.get(1);
+        } // else:
+          // results.size() != 2
+          // for some reason two transactions wasn't logged.
+        Assert.assertNotNull(st);
+        Assert.assertEquals(300, st.getAmount());
+    }
+
+    @Test
+    public void testDepositCash() {
+        createAccountsForTransferTests();
+        Assert.assertEquals(0, AccountBean.balance(reciever));
+
+        status = AccountBean.depositCash(reciever, 100);
+        Assert.assertTrue(status);
+        Assert.assertEquals(100, AccountBean.balance(reciever));
+    }
+
+    @Test
+    public void testWithdrawCash() {
+        createAccountsForTransferTests();
+        AccountBean.depositCash(reciever, 1000);
+        Assert.assertEquals(1000, AccountBean.balance(reciever));
+
+        status = AccountBean.withdrawCash(reciever, 100);
+        Assert.assertTrue(status);
+        Assert.assertEquals(900, AccountBean.balance(reciever));
+    }
+
+    @Test
+    public void testDepositFailure() {
+        createAccountsForTransferTests();
+        AccountBean.depositCash(reciever, 100);
+
+        // Try to deposit a negative number
+        status = AccountBean.depositCash(reciever, -100);
+        Assert.assertFalse(status);
+        Assert.assertEquals(100, AccountBean.balance(reciever));
+
+        // Try to deposit too much, overflow the account
+        status = AccountBean.depositCash(reciever, Long.MAX_VALUE);
+        Assert.assertFalse(status);
+        Assert.assertEquals(100, AccountBean.balance(reciever));
+    }
+
+    @Test
+    public void testWithdrawFailure() {
+        createAccountsForTransferTests();
+        AccountBean.depositCash(reciever, 1000);
+
+        // Try to withdraw a negative number
+        status = AccountBean.withdrawCash(reciever, -100);
+        Assert.assertFalse(status);
+        Assert.assertEquals(1000, AccountBean.balance(reciever));
+
+        // Try to withdraw too much
+        status = AccountBean.withdrawCash(reciever, 2000);
+        Assert.assertFalse(status);
+        Assert.assertEquals(1000, AccountBean.balance(reciever));
     }
 }

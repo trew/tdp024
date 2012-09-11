@@ -249,10 +249,12 @@ public abstract class AccountFacade {
         }
     }
     public static boolean withdrawCash(long account, long amount) {
+        if (amount < 0) { return false; }
         return changeBalanceCash(account, -amount);
     }
 
     public static boolean depositCash(long account, long amount) {
+        if (amount < 0) { return false; }
         return changeBalanceCash(account, amount);
     }
 

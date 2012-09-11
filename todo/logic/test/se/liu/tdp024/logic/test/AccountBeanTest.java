@@ -19,8 +19,6 @@ import se.liu.tdp024.entity.SavedTransaction;
 import se.liu.tdp024.logic.bean.AccountBean;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.util.HTTPHelper;
-import se.liu.tdp024.util.Monlog;
-
 
 public class AccountBeanTest {
     private static String PersonAPI_URL = "http://enterprise-systems.appspot.com/person/";
@@ -36,8 +34,6 @@ public class AccountBeanTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        Monlog.setLoggingOff();
-
         JsonParser jp = new JsonParser();
         JsonObject jo;
         JsonElement je;
@@ -61,7 +57,6 @@ public class AccountBeanTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        Monlog.setLoggingOn();
     }
 
     @Before

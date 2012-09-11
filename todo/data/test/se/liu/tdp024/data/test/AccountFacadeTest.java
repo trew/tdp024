@@ -24,12 +24,10 @@ public class AccountFacadeTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        Monlog.setLoggingOff();
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        Monlog.setLoggingOn();
     }
 
     @Before

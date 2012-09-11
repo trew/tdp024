@@ -6,6 +6,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.logic.bean.AccountBean;
+import se.liu.tdp024.util.Monlog;
 
 /**
  * A service that provides an API for creating bank accounts and
@@ -16,6 +17,7 @@ import se.liu.tdp024.logic.bean.AccountBean;
  */
 @Path("/account")
 public class AccountService {
+    private static final Monlog LOGGER = Monlog.getLogger(Monlog.Severity.INFO);
 
     private static final Gson GSON = new Gson();
 
@@ -39,17 +41,23 @@ public class AccountService {
             @QueryParam("personkey") String personKey,
             @QueryParam("bankkey") String bankKey,
             @QueryParam("type") Integer accountType) {
+        String debugLongDesc = "AccountType: " + accountType + "\n" +
+                          "PersonKey: " + personKey + "\n" +
+                          "BankKey: "+ bankKey + "\n";
 
         if (bankKey == null || personKey == null || accountType == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();
         }
 
         Account account = AccountBean.create(accountType, personKey, bankKey);
 
         if (account != null) {
+            LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
             String json = GSON.toJson(account);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Account couldn't be created", debugLongDesc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -66,16 +74,21 @@ public class AccountService {
     @GET
     @Path("/list.personkey")
     public Response listByPersonKey(@QueryParam("key") String key) {
+        String debugLongDesc = "PersonKey: " + key + "\n";
+        
         if (key == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();
         }
         List<Account> accounts = AccountBean.findByPersonKey(key);
 
         if(accounts == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Person not found", debugLongDesc);
             String json = "{'error' : 'Person cannot be found.'}";
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
         }
 
+        LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
     }
@@ -89,16 +102,21 @@ public class AccountService {
     @GET
     @Path("/list.bankkey")
     public Response listByBankKey(@QueryParam("key") String key) {
+        String debugLongDesc = "BankKey: " + key + "\n";
+
         if (key == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();
         }
         List<Account> accounts = AccountBean.findByBankKey(key);
 
         if(accounts == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Bank not found", debugLongDesc);
             String json = "{'error' : 'Bank cannot be found.'}";
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
         }
 
+        LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
     }
@@ -115,16 +133,22 @@ public class AccountService {
     public Response withdraw(
             @QueryParam("acc") Long acc,
             @QueryParam("amount") Long amount) {
+        String debugLongDesc = "AccountNumber: " + acc + "\n" +
+                               "Amount: " + amount + "\n";
+
         if (acc == null || amount == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();
         }
 
         boolean status = AccountBean.withdrawCash(acc, amount);
 
         if (status) {
+            LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
             String json = GSON.toJson(status);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Withdraw couldn't be performed.", debugLongDesc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -141,16 +165,21 @@ public class AccountService {
     public Response deposit(
             @QueryParam("acc") Long acc,
             @QueryParam("amount") Long amount) {
+        String debugLongDesc = "AccountNumber: " + acc + "\n" +
+                               "Amount: " + amount + "\n";
 
         if (acc == null || amount == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();
         }
         boolean status = AccountBean.depositCash(acc, amount);
 
         if (status) {
+            LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
             String json = GSON.toJson(status);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Deposit couldn't be performed.", debugLongDesc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -169,18 +198,23 @@ public class AccountService {
             @QueryParam("sender") Long senderAcc,
             @QueryParam("reciever") Long recieverAcc,
             @QueryParam("amount") Long amount) {
+        String debugLongDesc = "Sender AccountNumber: " + senderAcc + "\n" +
+                               "Reciever AccountNumber: " + recieverAcc + "\n" +
+                               "Amount: " + amount + "\n";
         if (senderAcc == null || recieverAcc == null || amount == null) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();
         }
 
         boolean status = AccountBean.transfer(senderAcc, recieverAcc, amount);
 
         if (status) {
+            LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
             String json = GSON.toJson(status);
             return Response.status(Response.Status.OK).entity(json).build();
         } else {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Transfer couldn't be performed.", debugLongDesc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 }

@@ -24,8 +24,6 @@ public class AccountServiceTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        Monlog.setLoggingOff();
-
         String personApiUrl = "http://enterprise-systems.appspot.com/person/";
         String bankApiUrl =   "http://enterprise-systems.appspot.com/bank/";
 
@@ -52,7 +50,6 @@ public class AccountServiceTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        Monlog.setLoggingOn();
     }
 
     @Before

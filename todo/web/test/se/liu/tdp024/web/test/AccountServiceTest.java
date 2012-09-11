@@ -16,6 +16,8 @@ import se.liu.tdp024.web.service.AccountService;
 public class AccountServiceTest {
     private static String ExistingBankKey = "";
     private static String ExistingPersonKey = "";
+    AccountService accountService;
+    Response response;
 
     public AccountServiceTest() {
     }
@@ -55,6 +57,7 @@ public class AccountServiceTest {
 
     @Before
     public void setUp() {
+        accountService = new AccountService();
     }
 
     @After
@@ -64,8 +67,7 @@ public class AccountServiceTest {
 
     @Test
     public void testCreate() {
-        AccountService service = new AccountService();
-        Response response = service.createAccount(ExistingPersonKey,
+        response = accountService.createAccount(ExistingPersonKey,
                                                   ExistingBankKey,
                                                   Account.SALARY);
         Assert.assertEquals(200, response.getStatus());
@@ -76,27 +78,20 @@ public class AccountServiceTest {
 
     @Test
     public void testCreateFailure() {
-        AccountService service = new AccountService();
-        Response response = service.createAccount("",
-                                                  "",
-                                                  Account.SALARY);
+        // Bad account type
+        response = accountService.createAccount(ExistingPersonKey, ExistingBankKey, 5);
         Assert.assertEquals(500, response.getStatus());
 
-        response = service.createAccount(null,
-                                         ExistingBankKey,
-                                         Account.SALARY);
+        response = accountService.createAccount("", "", Account.SALARY);
         Assert.assertEquals(500, response.getStatus());
 
-
-        response = service.createAccount(ExistingPersonKey,
-                                         null,
-                                         Account.SALARY);
+        response = accountService.createAccount(null, ExistingBankKey, Account.SALARY);
         Assert.assertEquals(500, response.getStatus());
 
+        response = accountService.createAccount(ExistingPersonKey, null, Account.SALARY);
+        Assert.assertEquals(500, response.getStatus());
 
-        response = service.createAccount(ExistingPersonKey,
-                                         ExistingBankKey,
-                                         null);
+        response = accountService.createAccount(ExistingPersonKey, ExistingBankKey, null);
         Assert.assertEquals(500, response.getStatus());
     }
 
@@ -104,9 +99,8 @@ public class AccountServiceTest {
     public void testListByPersonID() {
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
-        AccountService service = new AccountService();
 
-        Response response = service.listByPersonKey(ExistingPersonKey);
+        response = accountService.listByPersonKey(ExistingPersonKey);
         Assert.assertEquals(200, response.getStatus());
 
         Object entity = response.getEntity();
@@ -119,9 +113,8 @@ public class AccountServiceTest {
     public void testListByBankID() {
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
         AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey);
-        AccountService service = new AccountService();
 
-        Response response = service.listByBankKey(ExistingBankKey);
+        response = accountService.listByBankKey(ExistingBankKey);
         Assert.assertEquals(200, response.getStatus());
 
         Object entity = response.getEntity();
@@ -132,8 +125,7 @@ public class AccountServiceTest {
 
     @Test
     public void testListByPersonIDFailure() {
-        AccountService service = new AccountService();
-        Response response = service.listByPersonKey("");
+        response = accountService.listByPersonKey("");
         Assert.assertEquals(200, response.getStatus());
 
         Object entity = response.getEntity();
@@ -144,8 +136,7 @@ public class AccountServiceTest {
 
     @Test
     public void testListByBankIDFailure() {
-        AccountService service = new AccountService();
-        Response response = service.listByBankKey("");
+        response = accountService.listByBankKey("");
         Assert.assertEquals(200, response.getStatus());
 
         Object entity = response.getEntity();
@@ -154,98 +145,141 @@ public class AccountServiceTest {
         Assert.assertEquals(0, accounts.size());
     }
 
-    @Test
-    public void testWithdraw() {
-        AccountService as = new AccountService();
-        long testAccount = AccountBean.create(Account.SALARY,
+    /* Transfer functions */
+
+    long sender;
+    long reciever;
+
+    private void setUpAccounts() {
+        sender = AccountBean.create(Account.SALARY,
+                ExistingPersonKey, ExistingBankKey).getAccountNumber();
+        reciever = AccountBean.create(Account.SAVINGS,
                 ExistingPersonKey, ExistingBankKey).getAccountNumber();
 
+    }
+
+    @Test
+    public void testWithdraw() {
+        setUpAccounts();
         // Withdraw non-existing money
-        Response response = as.withdraw(testAccount, 100L);
+        response = accountService.withdraw(sender, 100L);
         Assert.assertEquals(500, response.getStatus());
 
         // Deposit cash for testing purposes and try a valid withdraw
-        Assert.assertTrue(AccountBean.depositCash(testAccount, 200));
+        Assert.assertTrue(AccountBean.depositCash(sender, 200));
+        Assert.assertEquals(200, AccountBean.balance(sender));
 
-        // Verify money transfered
-        Assert.assertEquals(200, AccountBean.balance(testAccount));
-
-        response = as.withdraw(testAccount, 80L);
+        response = accountService.withdraw(sender, 80L);
         Assert.assertEquals(200, response.getStatus());
 
+    }
+
+    @Test
+    public void testWithdrawFailure() {
+        setUpAccounts();
+
         // Try to withdraw negative amount
-        response = as.withdraw(testAccount, -50L);
+        response = accountService.withdraw(sender, -50L);
         Assert.assertEquals(500,response.getStatus());
 
         // Try to withdraw from nonexisting account.
-        response = as.withdraw(999L, 100L);
+        response = accountService.withdraw(999L, 100L);
         Assert.assertEquals(500,response.getStatus());
 
         // Try to withdraw with invalid input values (null)
-        response = as.withdraw(null, 100L);
+        response = accountService.withdraw(null, 100L);
         Assert.assertEquals(500,response.getStatus());
 
-        response = as.withdraw(50L, null);
+        response = accountService.withdraw(50L, null);
         Assert.assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testDeposit() {
-        // Set up test-account
-        AccountService as = new AccountService();
-        long testAccount = AccountBean.create(Account.SALARY,
-                ExistingPersonKey, ExistingBankKey).getAccountNumber();
+        setUpAccounts();
 
         // Test valid deposit
-        Response response = as.deposit(testAccount, 100);
+        response = accountService.deposit(sender, 100L);
         Assert.assertEquals(200, response.getStatus());
+    }
+
+    @Test
+    public void testDepositFailure() {
+        setUpAccounts();
+        accountService.deposit(sender, 100L);
 
         // Test invalid amount (amount to large)
-        response = as.deposit(testAccount, Long.MAX_VALUE);
+        response = accountService.deposit(sender, Long.MAX_VALUE);
         Assert.assertEquals(500, response.getStatus());
 
         // Test invalid amount (negative)
-        response = as.deposit(testAccount, -50);
+        response = accountService.deposit(sender, -50L);
         Assert.assertEquals(500, response.getStatus());
 
-        // Deposit
-        response = as.deposit(999, 100);
+        // Try to deposit from nonexisting account.
+        response = accountService.deposit(999L, 100L);
+        Assert.assertEquals(500, response.getStatus());
+
+        // Try to deposit with invalid input values (null)
+        response = accountService.deposit(null, 100L);
+        Assert.assertEquals(500,response.getStatus());
+
+        response = accountService.deposit(50L, null);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testTransferToSelf() {
+        // Transfer to self not possible
+        setUpAccounts();
+        response = accountService.transfer(sender, sender, 100L);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testTransferInvalidSender() {
+        setUpAccounts();
+        response = accountService.transfer(3L, reciever, 100L);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testTransferInvalidReciever() {
+        setUpAccounts();
+        response = accountService.transfer(sender, 3L, 100L);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testTransferNotEnoughMoneyOnSender() {
+        setUpAccounts();
+        Account senderAcc = AccountBean.getAccount(sender);
+        Assert.assertEquals(0, senderAcc.getBalance());
+
+        response = accountService.transfer(sender, reciever, 1L);
+        Assert.assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testTransferRecieverOverflowed() {
+        setUpAccounts();
+        AccountBean.depositCash(sender, Long.MAX_VALUE);
+        AccountBean.depositCash(reciever, 100);
+
+        response = accountService.transfer(sender, reciever, Long.MAX_VALUE);
         Assert.assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testTransfer() {
-        // Set up test-accounts
-        AccountService as = new AccountService();
-        long recieverAcc = AccountBean.create(Account.SALARY,
-                ExistingPersonKey, ExistingBankKey).getAccountNumber();
+        setUpAccounts();
+        AccountBean.depositCash(sender, 1000); // deposit 1000 to sender account
+        Assert.assertEquals(1000, AccountBean.balance(sender));
+        Assert.assertEquals(0, AccountBean.balance(reciever));
 
-        long senderAcc = AccountBean.create(Account.SAVINGS,
-                ExistingPersonKey, ExistingBankKey).getAccountNumber();
-
-        Response response = as.deposit(senderAcc, 100);
+        response = accountService.transfer(sender, reciever, 300L);
         Assert.assertEquals(200, response.getStatus());
-
-        response = as.transfer(senderAcc, recieverAcc, 20);
-        Assert.assertEquals(200, response.getStatus());
-
-        // Verify money transfered
-        Assert.assertEquals(20, AccountBean.balance(recieverAcc));
-
-        // Test invalid transfer (not enough money)
-        response = as.transfer(senderAcc, recieverAcc, 200);
-        Assert.assertEquals(500, response.getStatus());
-
-        // Test invalid transfer (negative amount)
-        response = as.transfer(senderAcc, recieverAcc, -20);
-        Assert.assertEquals(500, response.getStatus());
-
-        // Test invalid transfer (unknown sender)
-        response = as.transfer(999, recieverAcc, 20);
-        Assert.assertEquals(500, response.getStatus());
-
-        // Test invalid transfer (unknown reciever)
-        response = as.transfer(senderAcc, 999, 20);
-        Assert.assertEquals(500, response.getStatus());
+        Assert.assertEquals(700, AccountBean.balance(sender));
+        Assert.assertEquals(300, AccountBean.balance(reciever));
     }
 }

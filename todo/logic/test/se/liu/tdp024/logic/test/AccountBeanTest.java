@@ -76,10 +76,18 @@ public class AccountBeanTest {
 
     @Test
     public void testCreate() {
-        JsonParser jp = new JsonParser();
-
         // Make sure account was created
         Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey) != null);
+        Assert.assertTrue(AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey) != null);
+    }
+
+    @Test
+    public void testCreateFailure() {
+        JsonParser jp = new JsonParser();
+
+        // Bad accounts type
+        Assert.assertTrue(AccountBean.create(5, ExistingPersonKey, ExistingBankKey) == null);
+        Assert.assertTrue(AccountBean.create(-1, ExistingPersonKey, ExistingBankKey) == null);
 
         // Test that account cannot be created if Person does not exist, but bank does.
         String responseP = HTTPHelper.get(PersonAPI_URL + "find.key", "key", nonExistingPersonKey);
@@ -258,6 +266,10 @@ public class AccountBeanTest {
         status = AccountBean.depositCash(reciever, Long.MAX_VALUE);
         Assert.assertFalse(status);
         Assert.assertEquals(100, AccountBean.balance(reciever));
+
+        // Try to deposit to non-existing Account
+        status = AccountBean.depositCash(3L, 2000);
+        Assert.assertFalse(status);
     }
 
     @Test
@@ -274,5 +286,9 @@ public class AccountBeanTest {
         status = AccountBean.withdrawCash(reciever, 2000);
         Assert.assertFalse(status);
         Assert.assertEquals(1000, AccountBean.balance(reciever));
+
+        // Try to withdraw from non-existing Account
+        status = AccountBean.withdrawCash(3L, 2000);
+        Assert.assertFalse(status);
     }
 }

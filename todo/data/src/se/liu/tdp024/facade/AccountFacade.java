@@ -34,7 +34,10 @@ public abstract class AccountFacade {
             em.getTransaction().begin();
 
             Account acc = new Account();
-            acc.setAccountType(accountType);
+            if(!acc.setAccountType(accountType)) {
+                LOGGER.log(Monlog.Severity.WARNING, "Tried to create account of unknown type", debugLongDesc);
+                return null;
+            }
             acc.setPersonKey(personKey);
             acc.setBankKey(bankKey);
 

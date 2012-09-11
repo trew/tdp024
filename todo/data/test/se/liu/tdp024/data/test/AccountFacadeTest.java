@@ -68,11 +68,13 @@ public class AccountFacadeTest {
 
     @Test
     public void testCreateFail() {
+        // Bad account type
+        Assert.assertNull(AccountFacade.create(5, "key", "key"));
+        Assert.assertNull(AccountFacade.create(-1, "key", "key"));
+
         // Bad params
-        Account account = AccountFacade.create(0, null, "key");
-        Assert.assertNull(account);
-        account = AccountFacade.create(0, "key", null);
-        Assert.assertNull(account);
+        Assert.assertNull(AccountFacade.create(0, null, "key"));
+        Assert.assertNull(AccountFacade.create(0, "key", null));
     }
 
     @Test
@@ -266,6 +268,10 @@ public class AccountFacadeTest {
         status = AccountFacade.depositCash(reciever, Long.MAX_VALUE);
         Assert.assertFalse(status);
         Assert.assertEquals(100, AccountFacade.balance(reciever));
+
+        // Try to deposit to non-existing Account
+        status = AccountFacade.depositCash(3L, 2000);
+        Assert.assertFalse(status);
     }
 
     @Test
@@ -282,5 +288,9 @@ public class AccountFacadeTest {
         status = AccountFacade.withdrawCash(reciever, 2000);
         Assert.assertFalse(status);
         Assert.assertEquals(1000, AccountFacade.balance(reciever));
+
+        // Try to deposit to non-existing Account
+        status = AccountFacade.depositCash(3L, 2000);
+        Assert.assertFalse(status);
     }
 }

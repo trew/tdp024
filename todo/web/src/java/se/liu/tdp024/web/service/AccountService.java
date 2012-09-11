@@ -19,6 +19,10 @@ public class AccountService {
 
     private static final Gson GSON = new Gson();
 
+    private Response missingArgumentResponse() {
+        String json = "{'error' : 'missing input parameters'}";
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+    }
 
     /**
      * Creates a new account using the specified parameters.
@@ -37,8 +41,7 @@ public class AccountService {
             @QueryParam("type") Integer accountType) {
 
         if (bankKey == null || personKey == null || accountType == null) {
-            String json = "{'error' : 'missing input parameters' }";
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            return missingArgumentResponse();
         }
 
         Account account = AccountBean.create(accountType, personKey, bankKey);
@@ -60,6 +63,9 @@ public class AccountService {
     @GET
     @Path("/list.personkey")
     public Response listByPersonKey(@QueryParam("key") String key) {
+        if (key == null) {
+            return missingArgumentResponse();
+        }
         List<Account> accounts = AccountBean.findByPersonKey(key);
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
@@ -74,6 +80,9 @@ public class AccountService {
     @GET
     @Path("/list.bankkey")
     public Response listByBankKey(@QueryParam("key") String key) {
+        if (key == null) {
+            return missingArgumentResponse();
+        }
         List<Account> accounts = AccountBean.findByBankKey(key);
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
@@ -92,8 +101,7 @@ public class AccountService {
             @QueryParam("acc") Long acc,
             @QueryParam("amount") Long amount) {
         if (acc == null || amount == null) {
-            String json = "{'error' : 'missing input parameters'}";
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            return missingArgumentResponse();
         }
 
         boolean status = AccountBean.withdrawCash(acc, amount);
@@ -116,9 +124,12 @@ public class AccountService {
     @GET
     @Path("/deposit")
     public Response deposit(
-            @QueryParam("acc") long acc,
-            @QueryParam("amount") long amount) {
+            @QueryParam("acc") Long acc,
+            @QueryParam("amount") Long amount) {
 
+        if (acc == null || amount == null) {
+            return missingArgumentResponse();
+        }
         boolean status = AccountBean.depositCash(acc, amount);
 
         if (status) {
@@ -140,9 +151,12 @@ public class AccountService {
     @GET
     @Path("/transfer")
     public Response transfer(
-            @QueryParam("sender") long senderAcc,
-            @QueryParam("reciever") long recieverAcc,
-            @QueryParam("amount") long amount) {
+            @QueryParam("sender") Long senderAcc,
+            @QueryParam("reciever") Long recieverAcc,
+            @QueryParam("amount") Long amount) {
+        if (senderAcc == null || recieverAcc == null || amount == null) {
+            return missingArgumentResponse();
+        }
 
         boolean status = AccountBean.transfer(senderAcc, recieverAcc, amount);
 

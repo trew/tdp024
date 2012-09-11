@@ -117,10 +117,13 @@ public class AccountBeanTest {
 
         Assert.assertEquals(4, accounts.size());
 
-        // Make sure an empty list returned if querying for not
-        // existing bank
+    }
+
+    @Test
+    public void testFindByBankKeyFailure() {
+        // Null is returned if querying for not existing bank
         List<Account> emptyAccounts = AccountBean.findByBankKey(nonExistingBankKey);
-        Assert.assertEquals(0, emptyAccounts.size());
+        Assert.assertNull(emptyAccounts);
     }
 
     @Test
@@ -133,12 +136,15 @@ public class AccountBeanTest {
         List<Account> accounts = AccountBean.findByPersonKey(ExistingPersonKey);
 
         Assert.assertEquals(4, accounts.size());
-
-        // Make sure an empty list returned if querying for not
-        // existing person
-        List<Account> emptyAccounts = AccountBean.findByPersonKey(nonExistingPersonKey);
-        Assert.assertEquals(0, emptyAccounts.size());
     }
+
+    @Test
+    public void testFindByPersonKeyFailure() {
+        // Null is returned if querying for not existing person
+        List<Account> emptyAccounts = AccountBean.findByPersonKey(nonExistingPersonKey);
+        Assert.assertNull(emptyAccounts);
+    }
+
 
     long sender;
     long reciever;

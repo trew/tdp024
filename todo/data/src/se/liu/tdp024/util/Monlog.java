@@ -10,15 +10,15 @@ public final class Monlog {
     public static void setLoggingOn() { loggingOn = true; }
     public static void setLoggingOff() { loggingOn = false; }
 
-    public abstract static class Severity {
-        public static final int DEBUG     = 0;
-        public static final int INFO      = 1;
-        public static final int NOTIFY    = 2;
-        public static final int WARNING   = 3;
-        public static final int ERROR     = 4;
-        public static final int CRITICAL  = 5;
-        public static final int ALERT     = 6;
-        public static final int EMERGENCY = 7;
+    public static enum Severity {
+        DEBUG,
+        INFO,
+        NOTIFY,
+        WARNING,
+        ERROR,
+        CRITICAL,
+        ALERT,
+        EMERGENCY
     }
 
     public static Monlog getLogger() {
@@ -28,13 +28,12 @@ public final class Monlog {
         return logger;
     }
     
-    public static Monlog getLogger(int level) {
+    public static Monlog getLogger(Severity level) {
         final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
         return new Monlog(methodCaller[2].getClassName());
     }
     
-    public void setLevel(int level) {
-        if (level < Severity.DEBUG || level > Severity.EMERGENCY) { return; }
+    public void setLevel(Severity level) {
         this.level = level;
     }
 
@@ -44,16 +43,16 @@ public final class Monlog {
     }
 
     private String caller;
-    private int level;
+    private Severity level;
     
     private static final String MONLOG_ENDPOINT = "http://www.ida.liu.se/~TDP024/monlog/api/log/";
     private static final String API_KEY = "423b0ef8aa9b0e030e785a63262c06c81d1beaa7";
     private static final String REQUEST_URL = MONLOG_ENDPOINT + "?api_key=" + API_KEY + "&format=json";
 
-    private String buildResponse(int severity, String shortDesc, String longDesc) {
+    private String buildResponse(Severity severity, String shortDesc, String longDesc) {
         StringBuilder dataBuilder = new StringBuilder();
         dataBuilder.append("{");
-        dataBuilder.append("\"").append("severity").append("\":").append(severity).append(",");
+        dataBuilder.append("\"").append("severity").append("\":").append(severity.ordinal()).append(",");
         dataBuilder.append("\"").append("timestamp").append("\":\"").append(Calendar.getInstance().getTimeInMillis()).append("\",");
         dataBuilder.append("\"").append("short_desc").append("\":\"").append(shortDesc).append("\",");
         dataBuilder.append("\"").append("long_desc").append("\":\"").append(longDesc).append("\"");
@@ -71,15 +70,15 @@ public final class Monlog {
     }
     
     /* Log wrappers to make sure correct calling method is logged. */
-    public void log(int severity, String shortDescArg, String longDescArg) {
+    public void log(Severity severity, String shortDescArg, String longDescArg) {
         log(severity, shortDescArg, longDescArg, null);
     }
-    public void log(int severity, String shortDescArg, String longDescArg, Exception ex) {
+    public void log(Severity severity, String shortDescArg, String longDescArg, Exception ex) {
         doLog(severity, shortDescArg, longDescArg, ex);
     }
     
-    private void doLog(int severity, String shortDescArg, String longDescArg, Exception ex) {
-        if (!loggingOn || severity < level) { return; }
+    private void doLog(Severity severity, String shortDescArg, String longDescArg, Exception ex) {
+        if (!loggingOn) { return; }
 
         final StackTraceElement[] methodCaller = Thread.currentThread().getStackTrace();
         String methodName = methodCaller[3].getMethodName();

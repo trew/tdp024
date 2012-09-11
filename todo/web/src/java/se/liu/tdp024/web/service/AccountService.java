@@ -93,6 +93,12 @@ public class AccountService {
             return missingArgumentResponse();
         }
         List<Account> accounts = AccountBean.findByBankKey(key);
+
+        if(accounts == null) {
+            String json = "{'error' : 'Bank cannot be found.'}";
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+        }
+
         String json = GSON.toJson(accounts);
         return Response.status(Response.Status.OK).entity(json).build();
     }

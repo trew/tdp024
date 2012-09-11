@@ -53,13 +53,12 @@ public abstract class AccountBean {
     }
 
     public static List<Account> findByPersonKey(String personKey) {
-        if(!personExists(personKey)) {
-            return null;
-        }
+        if(!personExists(personKey)) { return null; }
         return AccountFacade.findByPersonKey(personKey);
     }
 
     public static List<Account> findByBankKey(String bankKey) {
+        if(!bankExists(bankKey)) { return null; }
         return AccountFacade.findByBankKey(bankKey);
     }
 

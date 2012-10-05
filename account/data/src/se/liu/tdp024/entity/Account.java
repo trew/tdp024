@@ -2,6 +2,7 @@ package se.liu.tdp024.entity;
 
 import java.io.Serializable;
 import javax.persistence.*;
+import se.liu.tdp024.exception.AccountException;
 
 /**
  *

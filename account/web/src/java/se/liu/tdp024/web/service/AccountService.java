@@ -2,6 +2,7 @@ package se.liu.tdp024.web.service;
 
 import com.google.gson.Gson;
 import java.util.List;
+import se.liu.tdp024.exception.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import se.liu.tdp024.entity.Account;
@@ -20,6 +21,12 @@ public class AccountService {
     private static final Monlog LOGGER = Monlog.getLogger(Monlog.Severity.INFO);
 
     private static final Gson GSON = new Gson();
+
+    private Response createExceptionResponse(AccountException e)
+    {
+
+        return Response.status(Response.Status.BAD_REQUEST).entity("asdf").build();
+    }
 
     private Response missingArgumentResponse() {
         String json = "{'error' : 'missing input parameters'}";
@@ -75,7 +82,7 @@ public class AccountService {
     @Path("/list.personkey")
     public Response listByPersonKey(@QueryParam("key") String key) {
         String debugLongDesc = "PersonKey: " + key + "\n";
-        
+
         if (key == null) {
             LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
             return missingArgumentResponse();

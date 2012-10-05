@@ -4,6 +4,7 @@ import java.util.*;
 import javax.persistence.*;
 import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.entity.SavedTransaction;
+import se.liu.tdp024.exception.*;
 import se.liu.tdp024.util.EMF;
 import se.liu.tdp024.util.Monlog;
 
@@ -22,7 +23,7 @@ public abstract class AccountFacade {
      */
     public static Account create(int accountType,
                               String personKey,
-                              String bankKey) {
+                              String bankKey) throws DatabaseException {
         String debugLongDesc = "AccountType: " + accountType + "\n" +
                           "PersonKey: " + personKey + "\n" +
                           "BankKey: "+ bankKey + "\n";
@@ -34,10 +35,7 @@ public abstract class AccountFacade {
             em.getTransaction().begin();
 
             Account acc = new Account();
-            if(!acc.setAccountType(accountType)) {
-                LOGGER.log(Monlog.Severity.WARNING, "Tried to create account of unknown type", debugLongDesc);
-                return null;
-            }
+            acc.setAccountType(accountType);
             acc.setPersonKey(personKey);
             acc.setBankKey(bankKey);
 
@@ -47,11 +45,10 @@ public abstract class AccountFacade {
             em.getTransaction().commit();
 
             return acc;
-
         } catch (Exception e) {
             String shortDesc = "Exception trying to create account.";
             LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
-            return null;
+            throw new DatabaseException("Error connecting to database.");
         } finally {
             if(em.getTransaction().isActive()) {
                 LOGGER.log(Monlog.Severity.DEBUG, "Rolling back Account creation", debugLongDesc);

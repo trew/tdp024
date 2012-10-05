@@ -2,7 +2,9 @@ package se.liu.tdp024.logic.bean;
 
 import com.google.gson.*;
 import java.util.*;
+import javax.security.auth.login.AccountException;
 import se.liu.tdp024.entity.Account;
+import se.liu.tdp024.exception.*;
 import se.liu.tdp024.facade.AccountFacade;
 import se.liu.tdp024.util.HTTPHelper;
 import se.liu.tdp024.util.Monlog;
@@ -31,19 +33,16 @@ public abstract class AccountBean {
 
     public static Account create(int accountType,
                               String personKey,
-                              String bankKey) {
+                              String bankKey) throws IllegalArgumentAccountException, DatabaseException {
+        if (accountType < 0 || accountType > 1) {
+            throw new IllegalArgumentAccountException("Account type is of unknown type.");
+        }
 
         if (!personExists(personKey)) {
-            LOGGER.log(Monlog.Severity.WARNING,
-                    "Tried to create account without PersonKey",
-                    "AccountType: "+ accountType +
-                    "\nPersonKey: "+ personKey +
-                    "\nBankKey: " + bankKey);
-            return null;
+            throw new IllegalArgumentAccountException("Person with provided key does not exist.");
         }
         if (!bankExists(bankKey)) {
-            //log
-            return null;
+            throw new IllegalArgumentAccountException("Bank with provided key does not exist.");
         }
         return AccountFacade.create(accountType, personKey, bankKey);
     }

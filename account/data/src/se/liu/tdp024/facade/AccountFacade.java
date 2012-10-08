@@ -58,7 +58,7 @@ public abstract class AccountFacade {
         }
     }
 
-    public static Account find(long accountNumber) {
+    public static Account find(long accountNumber) throws NotFoundException {
         String debugLongDesc = "AccountNumber: " + accountNumber + "\n";
 
         EntityManager em = EMF.getEntityManager();
@@ -67,6 +67,7 @@ public abstract class AccountFacade {
             if (acc == null) {
                 LOGGER.log(Monlog.Severity.INFO, "Account with accountnumber \"" +
                             accountNumber + "\" not found.", debugLongDesc);
+                throw new NotFoundException("Account not found");
             }
             return acc;
         } catch (IllegalArgumentException e) {
@@ -78,7 +79,7 @@ public abstract class AccountFacade {
             longDesc += "class: " + Account.class.getName() + "\n";
 
             LOGGER.log(Monlog.Severity.ERROR, e.getMessage(), longDesc, e);
-            return null;
+            throw new InternalError("Yikes!");
         } finally {
             em.close();
         }
@@ -114,19 +115,23 @@ public abstract class AccountFacade {
         return resultList;
     }
 
-    public static long balance(long accountNumber) {
+    public static long balance(long accountNumber) throws NotFoundException {
         String debugLongDesc = "AccountNumber: " + accountNumber + "\n";
 
-        Account acc = find(accountNumber);
-        if (acc == null) {
+        Account acc;
+        try {
+            acc = find(accountNumber);
+        } catch (NotFoundException e) {
             LOGGER.log(Monlog.Severity.INFO, "Couldn't find account when trying to access balance.", debugLongDesc);
-            return -1;
+            throw e;
         }
 
         return acc.getBalance();
     }
 
-    public static boolean transfer(long sender, long reciever, long amount) {
+    public static void transfer(long sender, long reciever, long amount)
+            throws IllegalArgumentAccountException, NotFoundException,
+                    DatabaseException, ValidationException {
         String debugLongDesc = "Sender AccountNumber: " + sender + "\n" +
                                "Reciever AccountNumber: " + reciever + "\n" +
                                "Amount: " + amount + "\n";
@@ -138,29 +143,29 @@ public abstract class AccountFacade {
             em.getTransaction().begin();
             if (sender == reciever) {
                 LOGGER.log(Monlog.Severity.ERROR, "Cannot transfer to self. (Sender == Reciever)", debugLongDesc);
-                return false;
+                throw new IllegalArgumentAccountException("Cannot transfer to self");
             }
 
             // Check validity of sender account
             Account senderAcc = em.find(Account.class, sender, LockModeType.PESSIMISTIC_WRITE);
             if (senderAcc == null) {
                 LOGGER.log(Monlog.Severity.INFO, "Sender account not found.", debugLongDesc);
-                return false;
+                throw new NotFoundException("Sender account not found.");
             }
 
             if ((senderAcc.getBalance() - amount) < 0) {
                 LOGGER.log(Monlog.Severity.INFO, "Not enough money on sender account. Aborting transfer.", debugLongDesc);
-                return false;
+                throw new ValidationException("Not enough money on sender account.");
             }
 
             Account recieverAcc = em.find(Account.class, reciever, LockModeType.PESSIMISTIC_WRITE);
             if (recieverAcc == null) {
-                LOGGER.log(Monlog.Severity.INFO, "Reciever account not found.", debugLongDesc);
-                return false;
+                LOGGER.log(Monlog.Severity.INFO, "Receiver account not found.", debugLongDesc);
+                throw new NotFoundException("Receiver account not found.");
             }
             if ((recieverAcc.getBalance() + amount) < 0) {
                 LOGGER.log(Monlog.Severity.NOTIFY, "Reciever account overflowed. Aborting transfer.", debugLongDesc);
-                return false;
+                throw new ValidationException("Receiver account overflowed.");
             }
 
             senderAcc.changeBalance(-amount);
@@ -174,13 +179,14 @@ public abstract class AccountFacade {
             LOGGER.log(Monlog.Severity.DEBUG, "Committing transaction.", debugLongDesc);
             em.getTransaction().commit();
 
-            return true;
-
+        } catch (NotFoundException e) {
+            throw e;
+        } catch (IllegalArgumentAccountException e) {
+            throw e;
         } catch (Exception e) {
             String shortDesc = "Exception trying to transfer.";
             LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
-            return false;
-
+            throw new DatabaseException("Connection error");
         } finally {
             /* If the transaction is still active, the commit never happened. */
             /* Do a barrel rollback. */
@@ -197,7 +203,8 @@ public abstract class AccountFacade {
         }
     }
 
-    private static boolean changeBalanceCash(long account, long amount) {
+    private static void changeBalanceCash(long account, long amount)
+            throws DatabaseException, NotFoundException, ValidationException {
         String debugLongDesc = "Changing balance of AccountNumber: " + account + "\n" +
                                "Amount: " + amount + "\n";
 
@@ -208,14 +215,14 @@ public abstract class AccountFacade {
 
             Account acc = em.find(Account.class, account, LockModeType.PESSIMISTIC_WRITE);
             if (acc == null) {
-                return false;
+                throw new NotFoundException("Account not found.");
             }
             if ((acc.getBalance() + amount) < 0) {
                 // Value out of range
                 // This also works for when value goes above
                 // Long.MAX_VALUE
                 LOGGER.log(Monlog.Severity.INFO, "Balance lower than 0 or higher than Long.MAX_VALUE. Aborting changeBalance.", debugLongDesc);
-                return false;
+                throw new ValidationException("Balance too low");
             }
 
             acc.changeBalance(amount);
@@ -226,12 +233,12 @@ public abstract class AccountFacade {
             LOGGER.log(Monlog.Severity.DEBUG, "Committing transaction.", debugLongDesc);
             em.getTransaction().commit();
 
-            return true;
-
+        } catch (NotFoundException e) {
+            throw e;
         } catch (Exception e) {
             String shortDesc = "Exception trying to change balance of account.";
             LOGGER.log(Monlog.Severity.WARNING, shortDesc, debugLongDesc, e);
-            return false;
+            throw new DatabaseException("Connection error");
         } finally {
             /* If the transaction is still active, the commit never happened. */
             /* Do a barrel rollback. */
@@ -248,14 +255,22 @@ public abstract class AccountFacade {
             em.close();
         }
     }
-    public static boolean withdrawCash(long account, long amount) {
-        if (amount < 0) { return false; }
-        return changeBalanceCash(account, -amount);
+    public static void withdrawCash(long account, long amount)
+            throws DatabaseException, NotFoundException,
+            ValidationException, IllegalArgumentAccountException {
+        if (amount < 0) {
+            throw new IllegalArgumentAccountException("Amount cannot be less than 0.");
+        }
+        changeBalanceCash(account, -amount);
     }
 
-    public static boolean depositCash(long account, long amount) {
-        if (amount < 0) { return false; }
-        return changeBalanceCash(account, amount);
+    public static void depositCash(long account, long amount)
+            throws DatabaseException, NotFoundException,
+            ValidationException, IllegalArgumentAccountException {
+        if (amount < 0) {
+            throw new IllegalArgumentAccountException("Amount cannot be less than 0.");
+        }
+        changeBalanceCash(account, amount);
     }
 
     private static void logTransaction(EntityManager em, long sender, long reciever, long amount, boolean success) {

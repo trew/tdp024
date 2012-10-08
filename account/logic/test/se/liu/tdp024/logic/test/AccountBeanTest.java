@@ -14,6 +14,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import se.liu.tdp024.exception.*;
 import se.liu.tdp024.entity.Account;
 import se.liu.tdp024.entity.SavedTransaction;
 import se.liu.tdp024.logic.bean.AccountBean;
@@ -72,8 +73,12 @@ public class AccountBeanTest {
     @Test
     public void testCreate() {
         // Make sure account was created
-        Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey) != null);
-        Assert.assertTrue(AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey) != null);
+        try {
+            Assert.assertTrue(AccountBean.create(Account.SALARY, ExistingPersonKey, ExistingBankKey) != null);
+            Assert.assertTrue(AccountBean.create(Account.SAVINGS, ExistingPersonKey, ExistingBankKey) != null);
+        } catch (AccountException e) {
+            Assert.fail(e.getMessage());
+        }
     }
 
     @Test
@@ -81,8 +86,20 @@ public class AccountBeanTest {
         JsonParser jp = new JsonParser();
 
         // Bad accounts type
-        Assert.assertTrue(AccountBean.create(5, ExistingPersonKey, ExistingBankKey) == null);
-        Assert.assertTrue(AccountBean.create(-1, ExistingPersonKey, ExistingBankKey) == null);
+        try {
+            AccountBean.create(5, ExistingPersonKey, ExistingBankKey);
+            Assert.fail();
+        } catch (IllegalArgumentAccountException e) {}
+        catch (Exception e) {
+            Assert.fail();
+        }
+        try {
+            AccountBean.create(-1, ExistingPersonKey, ExistingBankKey);
+            Assert.fail();
+        } catch (IllegalArgumentAccountException e) {}
+        catch (Exception e) {
+            Assert.fail();
+        }
 
         // Test that account cannot be created if Person does not exist, but bank does.
         String responseP = HTTPHelper.get(PersonAPI_URL + "find.key", "key", nonExistingPersonKey);
@@ -114,11 +131,10 @@ public class AccountBeanTest {
 
     }
 
-    @Test
+    @Test(expected=NotFoundException.class)
     public void testFindByBankKeyFailure() {
         // Null is returned if querying for not existing bank
         List<Account> emptyAccounts = AccountBean.findByBankKey(nonExistingBankKey);
-        Assert.assertNull(emptyAccounts);
     }
 
     @Test

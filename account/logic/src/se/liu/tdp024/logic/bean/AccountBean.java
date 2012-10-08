@@ -47,12 +47,14 @@ public abstract class AccountBean {
         return AccountFacade.create(accountType, personKey, bankKey);
     }
 
-    public static Account getAccount(long accountNumber) {
+    public static Account getAccount(long accountNumber) throws NotFoundException {
         return AccountFacade.find(accountNumber);
     }
 
-    public static List<Account> findByPersonKey(String personKey) {
-        if(!personExists(personKey)) { return null; }
+    public static List<Account> findByPersonKey(String personKey) throws IllegalArgumentAccountException {
+        if(!personExists(personKey)) {
+            throw new IllegalArgumentAccountException("PersonKey missing.");
+        }
         return AccountFacade.findByPersonKey(personKey);
     }
 
@@ -61,29 +63,35 @@ public abstract class AccountBean {
         return AccountFacade.findByBankKey(bankKey);
     }
 
-    public static long balance(long accountNumber) {
+    public static long balance(long accountNumber) throws NotFoundException {
         return AccountFacade.balance(accountNumber);
     }
 
-    public static boolean transfer(long sender, long reciever, long amount) {
+    public static void transfer(long sender, long reciever, long amount)
+            throws IllegalArgumentAccountException, NotFoundException,
+                    DatabaseException, ValidationException {
         if(amount < 0) {
-            return false;
+            throw new IllegalArgumentAccountException("Amount cannot be less than 0");
         }
-        return AccountFacade.transfer(sender, reciever, amount);
+        AccountFacade.transfer(sender, reciever, amount);
     }
 
-    public static boolean depositCash(long account, long amount) {
-        if(amount < 0) {
-            return false;
+    public static void depositCash(long account, long amount)
+            throws DatabaseException, NotFoundException,
+            ValidationException, IllegalArgumentAccountException {
+        if (amount < 0) {
+            throw new IllegalArgumentAccountException("Amount cannot be less than 0.");
         }
-        return AccountFacade.depositCash(account, amount);
+        AccountFacade.depositCash(account, amount);
     }
 
-    public static boolean withdrawCash(long account, long amount) {
-        if(amount < 0) {
-            return false;
+    public static void withdrawCash(long account, long amount)
+            throws DatabaseException, NotFoundException,
+            ValidationException, IllegalArgumentAccountException {
+        if (amount < 0) {
+            throw new IllegalArgumentAccountException("Amount cannot be less than 0.");
         }
-        return AccountFacade.withdrawCash(account, amount);
+        AccountFacade.withdrawCash(account, amount);
     }
 
 }

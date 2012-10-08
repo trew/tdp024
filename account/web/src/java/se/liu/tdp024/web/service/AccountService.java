@@ -1,6 +1,8 @@
 package se.liu.tdp024.web.service;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.List;
 import se.liu.tdp024.exception.*;
 import javax.ws.rs.*;
@@ -24,8 +26,12 @@ public class AccountService {
 
     private Response createExceptionResponse(AccountException e)
     {
+        JsonObject errors = new JsonObject();
+        errors.addProperty("type", e.getType());
+        errors.addProperty("code", e.getCode());
+        errors.addProperty("message", e.getMessage());
 
-        return Response.status(Response.Status.BAD_REQUEST).entity("asdf").build();
+        return Response.status(e.getCode()).entity(new Gson().toJson(errors)).build();
     }
 
     private Response missingArgumentResponse() {
@@ -54,18 +60,18 @@ public class AccountService {
 
         if (bankKey == null || personKey == null || accountType == null) {
             LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
-            return missingArgumentResponse();
+            return createExceptionResponse(new IllegalArgumentAccountException("Missing Argument."));
         }
 
-        Account account = AccountBean.create(accountType, personKey, bankKey);
-
-        if (account != null) {
+        Account account;
+        try {
+            account = AccountBean.create(accountType, personKey, bankKey);
             LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
             String json = GSON.toJson(account);
             return Response.status(Response.Status.OK).entity(json).build();
-        } else {
-            LOGGER.log(Monlog.Severity.NOTIFY, "Account couldn't be created", debugLongDesc);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (AccountException e) {
+            LOGGER.log(Monlog.Severity.NOTIFY, "Account couldn't be created", debugLongDesc, e);
+            return createExceptionResponse(e);
         }
     }
 
@@ -85,19 +91,20 @@ public class AccountService {
 
         if (key == null) {
             LOGGER.log(Monlog.Severity.NOTIFY, "Missing argument", debugLongDesc);
-            return missingArgumentResponse();
+            return createExceptionResponse(new IllegalArgumentAccountException("Argument `Key` is missing."));
         }
-        List<Account> accounts = AccountBean.findByPersonKey(key);
 
-        if(accounts == null) {
+        List<Account> accounts;
+        try {
+            accounts = AccountBean.findByPersonKey(key);
+            LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
+            String json = GSON.toJson(accounts);
+            return Response.status(Response.Status.OK).entity(json).build();
+        } catch (AccountException e){
             LOGGER.log(Monlog.Severity.NOTIFY, "Person not found", debugLongDesc);
-            String json = "{'error' : 'Person cannot be found.'}";
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(json).build();
+            return createExceptionResponse(e);
         }
 
-        LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
-        String json = GSON.toJson(accounts);
-        return Response.status(Response.Status.OK).entity(json).build();
     }
 
     /**
@@ -213,15 +220,14 @@ public class AccountService {
             return missingArgumentResponse();
         }
 
-        boolean status = AccountBean.transfer(senderAcc, recieverAcc, amount);
-
-        if (status) {
+        try {
+            AccountBean.transfer(senderAcc, recieverAcc, amount);
             LOGGER.log(Monlog.Severity.INFO, "Accepted request", debugLongDesc);
-            String json = GSON.toJson(status);
+            String json = GSON.toJson(true);
             return Response.status(Response.Status.OK).entity(json).build();
-        } else {
+        } catch (AccountException e) {
             LOGGER.log(Monlog.Severity.NOTIFY, "Transfer couldn't be performed.", debugLongDesc);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return createExceptionResponse(e);
         }
     }
 }
